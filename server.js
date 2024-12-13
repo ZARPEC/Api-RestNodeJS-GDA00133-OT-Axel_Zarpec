@@ -8,8 +8,9 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 const port = 3000;
-
+//Operaciones con categorias y subcategorias
 app.use('/categoria', categoriaRoutes);
+
 
 
 app.listen(port, () => {

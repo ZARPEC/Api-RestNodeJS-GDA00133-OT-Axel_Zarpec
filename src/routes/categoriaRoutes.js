@@ -1,9 +1,16 @@
 import express from 'express';
-import {AgregarCategoria,mostrarCategoriasModel} from '../controllers/Categorias/categoriaController.js';
+import {AgregarCategoria,mostrarCategoriasModel,AgregarSubCategoria,pruebaGet} from '../controllers/Categorias/categoriaController.js';
 
 const router = express.Router();
-
+//categorias
 router.post("/AgregarCategoria", AgregarCategoria);
 router.get("/mostrarCategorias", mostrarCategoriasModel);
+
+//subcategorias
+
+router.post("/agregarSubCategoria", AgregarSubCategoria);
+//router.get("/mostrarSubCategorias", MostrarSubCategorias);
+
+router.get("/pruebaGet", pruebaGet);
 
 export default router;
