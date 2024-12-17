@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import categoriaRoutes from './src/routes/categoriaRoutes.js';
+import productoRoutes from './src/routes/productoRoutes.js';
 
 
 
@@ -10,6 +11,8 @@ app.use(bodyParser.json());
 const port = 3000;
 //Operaciones con categorias y subcategorias
 app.use('/categoria', categoriaRoutes);
+//Operaciones con productos
+app.use('/producto', productoRoutes);
 
 
 
