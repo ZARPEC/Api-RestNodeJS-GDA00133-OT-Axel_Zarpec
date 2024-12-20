@@ -44,6 +44,9 @@ export async function MostrarSubCategorias(req, res) {
       subcategoriaGet = null;
       const result = await mostrarSubCategorias(categoriaGet, subcategoriaGet);
       res.status(200).json(result);
+    }else{
+      const result = await mostrarSubCategorias(categoriaGet, subcategoriaGet);
+      res.status(200).json(result);
     }
   } catch (err) {
     console.log(err);
