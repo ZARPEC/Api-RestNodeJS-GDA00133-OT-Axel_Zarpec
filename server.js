@@ -5,6 +5,8 @@ import productoRoutes from './src/routes/productoRoutes.js';
 import clienteRoutes from './src/routes/clienteRoutes.js';
 import ordenesRoutes from './src/routes/ordenesRoutes.js';
 import usuarioRoutes from './src/routes/usuariosRoutes.js';
+import estadoRoutes from './src/routes/estadosRoutes.js';
+import rolesRoutes from './src/routes/rolRoutes.js';
 import authenticateToken from './src/middleware/authMiddleware.js';
 
 
@@ -20,9 +22,13 @@ app.use('/producto', productoRoutes);
 //operaciones con clientes
 app.use('/cliente', clienteRoutes);
 //Operaciones con detalles y ordenes
-
 app.use('/ordenes',authenticateToken, ordenesRoutes);
+//operaciones con usuarios
 app.use('/usuario', usuarioRoutes);
+//operaciones con estados
+app.use('/estado',authenticateToken, estadoRoutes);
+//operaciones con roles
+app.use('/roles',authenticateToken, rolesRoutes);
 
 
 
