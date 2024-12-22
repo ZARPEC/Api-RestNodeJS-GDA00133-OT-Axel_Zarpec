@@ -93,3 +93,36 @@ export async function mostrarProductos(categoria, subcategoria) {
     sql.close();
   }
 }
+
+export async function modificarProducto(
+  id,
+  Nnombre,
+  NcantidadMedida,
+  NunidadMedida,
+  Nsubcategoria,
+  Nprecio,
+  Nstock,
+  NrutaImg,
+  Nfecha
+) {
+  try {
+    await sql.connect(dbConfig);
+    const result = await new sql.Request()
+      .input("id", id)
+      .input("nuevoNombre", Nnombre)
+      .input("nuevaCantidadMedida", NcantidadMedida)
+      .input("nuevaUnidadMedida", NunidadMedida)
+      .input("nuevaSubcategoria", Nsubcategoria)
+      .input("nuevoPrecio", Nprecio)
+      .input("nuevoStock", Nstock)
+      .input("nuevaRutaImg", NrutaImg)
+      .input("nuevaFechaIngreso", Nfecha)
+      .execute("spModificarProducto");
+    return result.recordset;
+  } catch (err) {
+    throw err;
+    console.error(err);
+  } finally {
+    sql.close();
+  }
+}
