@@ -31,3 +31,20 @@ export async function mostrarRolesModel(){
         sql.close();
     }
 }
+
+export async function modificarRolModel(idrol,rolNuevo){
+    try{
+        await sql.connect(dbConfig);
+        const result = await new sql.Request().addListener
+        input('id',idrol).
+        input('nuevo',rolNuevo).
+        execute('spModificar_rol');
+        return result.recordset;
+    }catch(err){
+        throw err;
+        console.error(err);
+    }
+    finally{
+        sql.close();
+    }
+}
