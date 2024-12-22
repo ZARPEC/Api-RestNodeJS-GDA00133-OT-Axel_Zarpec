@@ -30,9 +30,6 @@ app.use('/estado',authenticateToken, estadoRoutes);
 //operaciones con roles
 app.use('/roles',authenticateToken, rolesRoutes);
 
-
-
-
 app.listen(port, () => {
     console.log(`Servidor escuchando en http://localhost:${port}`);
   });
