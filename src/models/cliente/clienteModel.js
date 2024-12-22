@@ -89,3 +89,24 @@ export async function modificarClienteModel(
         sql.close();
     }
 }
+
+export async function modificarEstadoClienteModel(id,nuevoEstado){
+    try {
+        await sql.connect(dbConfig);
+        const result = await new sql.Request().
+        input('id', id).
+        input('nuevo', nuevoEstado).
+        execute('spModificar_estados_tUsuario');
+        return result.recordset;
+
+    }catch(err){
+        throw err;
+        console.error(err);
+       
+    }
+    finally
+    {
+        sql.close();
+    }
+
+}

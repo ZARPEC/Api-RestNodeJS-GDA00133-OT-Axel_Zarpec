@@ -1,6 +1,7 @@
 import {
   AgregarCliente,
   modificarClienteModel,
+  modificarEstadoClienteModel
 } from "../../models/cliente/clienteModel.js";
 import bcrypt from "bcryptjs";
 
@@ -80,6 +81,21 @@ export async function modificarCliente(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).send("Error al modificar el cliente");
+  }finally {
+    sql.close();
+  }
+}
+
+export async function modificarEstadoCliente(req, res) {
+  try {
+    const idCliente = req.body.idCliente;
+    const estado_fk = req.body.estado_fk;
+
+    const result = await modificarEstadoClienteModel(idCliente, estado_fk);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error al modificar el estado del cliente");
   }finally {
     sql.close();
   }
