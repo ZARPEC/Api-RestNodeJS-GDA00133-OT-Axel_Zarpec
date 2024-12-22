@@ -1,4 +1,4 @@
-import {mostrarProductos,agregarProducto, modificarProducto} from "../../models/productos/productosModel.js";
+import {mostrarProductos,agregarProducto, modificarProductoModel} from "../../models/productos/productosModel.js";
 
 export async function AgregarProducto(req, res) {
   try {

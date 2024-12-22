@@ -94,7 +94,7 @@ export async function mostrarProductos(categoria, subcategoria) {
   }
 }
 
-export async function modificarProducto(
+export async function modificarProductoModel(
   id,
   Nnombre,
   NcantidadMedida,
