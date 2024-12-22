@@ -17,13 +17,30 @@ export async function agregarCategoria(nombreCategoria) {
   }
 }
 
-export async function mostrarCategorias() {
+export async function mostrarCategoriasModel() {
   try {
     await sql.connect(dbConfig);
     const result = await sql.query`select * from dbo.Categoria_producto`;
     return result.recordset;
   } catch (err) {
     throw err;
+  } finally {
+    sql.close();
+  }
+}
+
+export async function modificarCategoriaModel(idCategoria, nombreCategoria) {
+
+  try {
+    await sql.connect(dbConfig);
+    const result = await new sql.Request()
+      .input("id", idCategoria)
+      .input("nuevo", nombreCategoria)
+      .execute("spModificar_Categoria");
+    return result.recordset;
+  } catch (err) {
+    throw err;
+    console.error(err);
   } finally {
     sql.close();
   }
@@ -78,6 +95,24 @@ export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {// mu
   } catch (err) {
     throw err;
     console.error(err);
+  }
+}
+
+export async function modificarSubCategoriaModel(idSubcategoria,nombreSubcategoria,subcategoria_padre,categoria_fk){
+  try {
+    await sql.connect(dbConfig);
+    const result = await new sql.Request()
+      .input("id", idSubcategoria)
+      .input("nuevoNombre", nombreSubcategoria)
+      .input("nuevosubcategoriaPadre", subcategoria_padre)
+      .input("nuevocategoriaFK", categoria_fk)
+      .execute("spModificarSubcategoria");
+    return result.recordset;
+  } catch (err) {
+    throw err;
+    console.error(err);
+  } finally {
+    sql.close();
   }
 }
 

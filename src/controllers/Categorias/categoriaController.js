@@ -1,4 +1,4 @@
-import {agregarCategoria,mostrarCategorias, agregarSubCategoria,mostrarSubCategorias} from "../../models/categorias/categoriaModel.js";
+import {agregarCategoria,mostrarCategoriasModel, agregarSubCategoria,mostrarSubCategorias,modificarCategoriaModel,modificarSubCategoriaModel} from "../../models/categorias/categoriaModel.js";
 //categorias
 export async function AgregarCategoria(req, res) {
   try {
@@ -11,13 +11,25 @@ export async function AgregarCategoria(req, res) {
   }
 }
 
-export async function mostrarCategoriasModel(req, res) {
+export async function mostrarCategorias(req, res) {
   try {
-    const result = await mostrarCategorias();
+    const result = await mostrarCategoriasModel();
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
     res.status(500).send("Error al mostrar las categorias");
+  }
+}
+
+export async function modificarCategoria(req, res) {
+  try {
+    const idCategoria = req.body.idCategoria;
+    const nombreCategoria = req.body.nombreCategoria;
+    const result = await modificarCategoriaModel(idCategoria, nombreCategoria);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error al modificar la categoria");
   }
 }
 
@@ -51,6 +63,21 @@ export async function MostrarSubCategorias(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).send("Error al mostrar las subcategorias");
+  }
+}
+
+export async function modificarSubCategoria(req, res) {
+
+  try {
+    const idSubCategoria = req.body.idSubCategoria;
+    const nombreSubCategoria = req.body.nombreSubCategoria;
+    const subcategoria_padre = req.body.subcategoria_padre;
+    const categoria_fk = req.body.categoria_fk;
+    const result = await modificarSubCategoriaModel(idSubCategoria, nombreSubCategoria, subcategoria_padre, categoria_fk);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error al modificar la subcategoria");
   }
 }
 
