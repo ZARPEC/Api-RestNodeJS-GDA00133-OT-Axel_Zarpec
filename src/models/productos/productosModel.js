@@ -126,3 +126,20 @@ export async function modificarProductoModel(
     sql.close();
   }
 }
+
+export async function modificarEstadoProductoModel(id, nuevoEstado) {
+  try {
+    await sql.connect(dbConfig);
+    const result = await new sql.Request()
+      .input("id", id)
+      .input("nuevo", nuevoEstado)
+      .execute("spModificar_Estado_Producto");
+    return result.recordset;
+  } catch (err) {
+    throw err;
+    console.error(err);
+  } finally {
+    sql.close();
+  }
+}
+

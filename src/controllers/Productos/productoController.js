@@ -1,4 +1,4 @@
-import {mostrarProductos,agregarProducto, modificarProductoModel} from "../../models/productos/productosModel.js";
+import {mostrarProductos,agregarProducto, modificarProductoModel, modificarEstadoProductoModel} from "../../models/productos/productosModel.js";
 
 export async function AgregarProducto(req, res) {
   try {
@@ -78,7 +78,7 @@ export async function modificarProducto(req, res) {
     const stock = req.body.stock;
     const rutaimg = req.body.ruta_img;
     const estado = req.body.estado_fk;
-    const result = await modificarProducto(
+    const result = await modificarProductoModel(
       idProducto,
       nombreP,
       medidaCant,
@@ -93,5 +93,17 @@ export async function modificarProducto(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).send("Error al modificar el producto");
+  }
+}
+
+export async function modificarEstadoProducto(req, res) {
+  try {
+    const idProducto = req.body.idProducto;
+    const estado = req.body.estado_fk;
+    const result = await modificarEstadoProductoModel(idProducto, estado);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error al modificar el estado del producto");
   }
 }
