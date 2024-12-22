@@ -71,3 +71,37 @@ export async function mostrarOrdenesModel(idCliente){
     sql.close();
   }
 }
+
+export async function modificarOrdenModel(id,usuario_fk,estado_fk,direccion){
+  try {
+    await sql.connect(dbConfig);
+    const result = await new sql.Request()
+      .input("id", id)
+      .input("usuario_fk", usuario_fk)
+      .input("estado_fk", estado_fk)
+      .input("direccion", direccion)
+      .execute("spModificarOrden");
+    return result.recordset;
+  } catch (err) {
+    throw err;
+    console.error(err);
+  } finally {
+    sql.close();
+  }
+}
+
+export async function actualizarEstadoModel(id,estado){
+  try {
+    await sql.connect(dbConfig);
+    const result = await new sql.Request()
+      .input("id", id)
+      .input("estado", estado)
+      .execute("spModificar_estado_orden");
+    return result.recordset;
+  } catch (err) {
+    throw err;
+    console.error(err);
+  } finally {
+    sql.close();
+  }
+}

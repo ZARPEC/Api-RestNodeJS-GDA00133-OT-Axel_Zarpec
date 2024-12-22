@@ -1,6 +1,8 @@
 import {
   AgregarOrdenModel,
   mostrarOrdenesModel,
+  modificarOrdenModel,
+  actualizarEstadoModel
 } from "../models/ordenesModel.js";
 
 export async function agregarOrden(req, res) {
@@ -65,4 +67,33 @@ export async function mostrarOrdenes(req, res) {
     console.log(err);
     res.status(500).send("Error al mostrar las ordenes");
   }
+}
+
+
+export async function modificarOrden(req, res) {
+
+  try {
+    const id = req.body.idorden;
+    const usuario = req.body.usuario_fk;
+    const estado = req.body.estado_fk;
+    const direccion = req.body.direccion;
+    const result = await modificarOrdenModel(id, usuario, estado, direccion);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error al modificar la orden");
+  }
+}
+
+export async function actualizarEstado(req, res) {
+  try {
+    const id = req.body.idorden;
+    const estado = req.body.estado_fk;
+    const result = await actualizarEstadoModel(id, estado);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error al modificar la orden");
+  }
+
 }
