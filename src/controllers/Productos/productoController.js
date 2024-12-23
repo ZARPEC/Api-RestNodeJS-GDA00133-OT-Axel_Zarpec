@@ -1,4 +1,9 @@
-import {mostrarProductos,agregarProducto, modificarProductoModel, modificarEstadoProductoModel} from "../../models/productos/productosModel.js";
+import {
+  mostrarProductos,
+  agregarProducto,
+  modificarProductoModel,
+  modificarEstadoProductoModel,
+} from "../../models/productos/productosModel.js";
 
 export async function AgregarProducto(req, res) {
   try {
@@ -53,9 +58,15 @@ export async function MostrarProductos(req, res) {
   try {
     var categoria = req.query.categoria;
     var subcategoria = req.query.subcategoria;
-    if (typeof subcategoriaGet == "undefined") {
-      subcategoriaGet = null;
-      const result = await mostrarSubCategorias(categoriaGet, subcategoriaGet);
+    console.log(categoria + " " + subcategoria + " estan vacios");
+    if (typeof subcategoria == "undefined" && typeof categoria == "undefined") {
+      subcategoria = null;
+      categoria = null;
+      const result = await mostrarProductos(null, null);
+      res.status(200).json(result);
+    } else if (typeof subcategoria == "undefined") {
+      subcategoria = null;
+      const result = await mostrarProductos(categoria, subcategoria);
       res.status(200).json(result);
     } else {
       const result = await mostrarProductos(categoria, subcategoria);
@@ -77,7 +88,6 @@ export async function modificarProducto(req, res) {
     const precio = req.body.precio;
     const stock = req.body.stock;
     const rutaimg = req.body.ruta_img;
-    const estado = req.body.estado_fk;
     const result = await modificarProductoModel(
       idProducto,
       nombreP,
@@ -86,8 +96,7 @@ export async function modificarProducto(req, res) {
       subcategoria,
       precio,
       stock,
-      rutaimg,
-      estado
+      rutaimg
     );
     res.status(200).json(result);
   } catch (err) {

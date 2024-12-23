@@ -37,7 +37,29 @@ export async function agregarProducto(
 export async function mostrarProductos(categoria, subcategoria) {
   try {
     await sql.connect(dbConfig);
-    if (subcategoria == null) {
+    if (categoria == null && subcategoria == null) {
+      console.log("entro a subcategoria null y categoria null");
+      const result = await sql.query`
+                SELECT 
+                    p.idProducto,
+                    p.nombre_producto,
+                    u.unidad,
+                    p.cantidad_medida,
+                    c.nombre_categoria,
+                    s.subcategoria,
+                    p.precio,
+                    p.stock
+                FROM 
+                    Producto p
+                JOIN 
+                    Subcategoria s ON p.subcategoria_prod = s.idSubcategoria
+                JOIN 
+                    unidad_medida u ON p.unidad_medida_fk = u.idUnidad
+                join Categoria_producto c ON s.categoria_fk = c.idCategoria
+                ORDER BY p.nombre_producto ASC `;
+      return result.recordset;
+    } else if (subcategoria == null) {
+      console.log("entro a subcategoria null");
       const result = await sql.query`
                 SELECT
                     p.idProducto,
@@ -102,8 +124,7 @@ export async function modificarProductoModel(
   Nsubcategoria,
   Nprecio,
   Nstock,
-  NrutaImg,
-  Nfecha
+  NrutaImg
 ) {
   try {
     await sql.connect(dbConfig);
@@ -116,7 +137,6 @@ export async function modificarProductoModel(
       .input("nuevoPrecio", Nprecio)
       .input("nuevoStock", Nstock)
       .input("nuevaRutaImg", NrutaImg)
-      .input("nuevaFechaIngreso", Nfecha)
       .execute("spModificarProducto");
     return result.recordset;
   } catch (err) {
@@ -142,4 +162,3 @@ export async function modificarEstadoProductoModel(id, nuevoEstado) {
     sql.close();
   }
 }
-
