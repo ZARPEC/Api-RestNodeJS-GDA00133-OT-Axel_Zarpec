@@ -33,10 +33,12 @@ export async function mostrarEstadosModel() {
 export async function modificarEstadoModel(idEstado, estadoNuevo) {
   try {
     await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("id", idEstado)
-      .input("nuevo", estadoNuevo)
-      .execute("spModificar_estado");
+    console.log(idEstado, estadoNuevo);
+    const result = await new sql.Request().
+      input("id", idEstado).
+      input("nuevo", estadoNuevo).
+      execute("spModificar_estado");
+      console.log(result);
     return result.recordset;
   } catch (err) {
     throw err;
