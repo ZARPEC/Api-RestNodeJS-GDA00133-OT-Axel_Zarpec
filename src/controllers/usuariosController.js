@@ -1,4 +1,8 @@
-import { LoginModel, agregarUsuarioModel, modificarUsuarioModel} from "../models/usuarioModel.js";
+import {
+  LoginModel,
+  agregarUsuarioModel,
+  modificarUsuarioModel,
+} from "../models/usuarioModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
@@ -62,8 +66,6 @@ export async function agregarUsuario(req, res) {
         } catch (err) {
           console.log(err);
           res.status(500).send("Error al agregar el usuario");
-        } finally {
-          sql.close();
         }
       }
     });
@@ -99,8 +101,5 @@ export async function ModificarUsuario(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).send("Error al modificar el usuario");
-  }
-  finally{
-    sql.close();
   }
 }

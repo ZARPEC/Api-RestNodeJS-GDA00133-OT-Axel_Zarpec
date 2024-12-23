@@ -45,12 +45,12 @@ export async function modificarUsuarioModel(idUsuario,rol,estado,email,nombre,ap
     .input("id",idUsuario)
     .input("nuevoRol",rol)
     .input("NuevoEstado",estado)
-    .input("Nuevomail",email)
+    .input("nuevoEmail",email)
     .input("NuevoNombre",nombre)
     .input("NuevoApellido",apellido)
-    .input("NuevoTelefono",telefono)
-    .input("NuevoNacimiento",nacimiento)
-    .execute("spModificarusuario");
+    .input("nuevoTelefono",telefono)
+    .input("nuevoFechaNacimiento",nacimiento)
+    .execute("spModificarUsuario");
     return result.recordset;
   }catch(err){
     throw err;
