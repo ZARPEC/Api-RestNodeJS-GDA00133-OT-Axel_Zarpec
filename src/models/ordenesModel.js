@@ -18,6 +18,8 @@ export async function AgregarOrdenModel(
       productos.rows.add(detalle.producto_orden, detalle.cantidad);
     });
 
+    console.log(detalles);
+
     const result = await new sql.Request()
       .input("usuario_fk", usuario)
       .input("estado_fk", estado)
@@ -78,7 +80,6 @@ export async function modificarOrdenModel(id,usuario_fk,estado_fk,direccion){
     const result = await new sql.Request()
       .input("id", id)
       .input("usuario_fk", usuario_fk)
-      .input("estado_fk", estado_fk)
       .input("direccion", direccion)
       .execute("spModificarOrden");
     return result.recordset;

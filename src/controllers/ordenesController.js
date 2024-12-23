@@ -75,9 +75,8 @@ export async function modificarOrden(req, res) {
   try {
     const id = req.body.idorden;
     const usuario = req.body.usuario_fk;
-    const estado = req.body.estado_fk;
     const direccion = req.body.direccion;
-    const result = await modificarOrdenModel(id, usuario, estado, direccion);
+    const result = await modificarOrdenModel(id, usuario, direccion);
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
