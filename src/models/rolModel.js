@@ -35,7 +35,7 @@ export async function mostrarRolesModel(){
 export async function modificarRolModel(idrol,rolNuevo){
     try{
         await sql.connect(dbConfig);
-        const result = await new sql.Request().addListener
+        const result = await new sql.Request().
         input('id',idrol).
         input('nuevo',rolNuevo).
         execute('spModificar_rol');
