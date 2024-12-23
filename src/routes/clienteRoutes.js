@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/AgregarCliente",authenticateToken, agregarCliente);
 router.post("/modificarCliente",authenticateToken, modificarCliente);
-router.post("/modificarEstadoCliente",authenticateToken, modificarCliente);
+router.post("/modificarEstadoCliente",authenticateToken, modificarEstadoCliente);
 
 
 
