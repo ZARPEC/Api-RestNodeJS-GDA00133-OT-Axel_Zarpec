@@ -1,5 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import categoriaRoutes from './src/routes/categoriaRoutes.js';
 import productoRoutes from './src/routes/productoRoutes.js';
 import clienteRoutes from './src/routes/clienteRoutes.js';
@@ -12,9 +13,10 @@ import authenticateToken from './src/middleware/authMiddleware.js';
 
 
 const app = express();
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-const port = 3000;
+const port = 3005;
 //Operaciones con categorias y subcategorias
 app.use('/categoria', categoriaRoutes);
 //Operaciones con productos
@@ -30,6 +32,6 @@ app.use('/estado',authenticateToken, estadoRoutes);
 //operaciones con roles
 app.use('/roles',authenticateToken, rolesRoutes);
 
-app.listen(port, () => {
+app.listen(port,'0.0.0.0', () => {
     console.log(`Servidor escuchando en http://localhost:${port}`);
   });
