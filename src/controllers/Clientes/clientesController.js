@@ -2,6 +2,7 @@ import {
   AgregarCliente,
   modificarClienteModel,
   modificarEstadoClienteModel,
+  mostrarClientesModel,
 } from "../../models/cliente/clienteModel.js";
 import bcrypt from "bcryptjs";
 
@@ -39,7 +40,7 @@ export async function agregarCliente(req, res) {
           hash,
           fechaNaciemiento
         );
-        res.status(200).json(result);
+        res.status(200).json({ success: true });
       }
     });
   } catch (err) {
@@ -92,7 +93,14 @@ export async function modificarEstadoCliente(req, res) {
   } catch (err) {
     console.log(err);
     res.status(500).send("Error al modificar el estado del cliente");
-  } finally {
-    sql.close();
+  }
+}
+
+export async function mostrarClientes(req, res) {
+  try {
+    const result = await mostrarClientesModel();
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
   }
 }
