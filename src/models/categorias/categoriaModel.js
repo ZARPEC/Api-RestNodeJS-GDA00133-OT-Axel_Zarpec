@@ -24,9 +24,7 @@ export async function mostrarCategoriasModel() {
     return result.recordset;
   } catch (err) {
     throw err;
-  } finally {
-    sql.close();
-  }
+  } 
 }
 
 export async function modificarCategoriaModel(idCategoria, nombreCategoria) {
@@ -41,9 +39,7 @@ export async function modificarCategoriaModel(idCategoria, nombreCategoria) {
   } catch (err) {
     throw err;
     console.error(err);
-  } finally {
-    sql.close();
-  }
+  } 
 }
 
 //subcategorias
@@ -63,9 +59,7 @@ export async function agregarSubCategoria(
   } catch (err) {
     throw err;
     console.error(err);
-  } finally {
-    sql.close();
-  }
+  } 
 }
 
 export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {// muestra las subcategorias asi como subcategorias hijas
@@ -111,9 +105,7 @@ export async function modificarSubCategoriaModel(idSubcategoria,nombreSubcategor
   } catch (err) {
     throw err;
     console.error(err);
-  } finally {
-    sql.close();
-  }
+  } 
 }
 
 /* 
