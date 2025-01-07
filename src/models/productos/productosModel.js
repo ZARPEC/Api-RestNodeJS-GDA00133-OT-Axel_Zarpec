@@ -29,9 +29,7 @@ export async function agregarProducto(
   } catch (err) {
     throw err;
     console.error(err);
-  } finally {
-    sql.close();
-  }
+  } 
 }
 
 export async function mostrarProductos(categoria, subcategoria) {
@@ -48,7 +46,8 @@ export async function mostrarProductos(categoria, subcategoria) {
                     c.nombre_categoria,
                     s.subcategoria,
                     p.precio,
-                    p.stock
+                    p.stock,
+                    p.ruta_img
                 FROM 
                     Producto p
                 JOIN 
@@ -69,7 +68,8 @@ export async function mostrarProductos(categoria, subcategoria) {
                     c.nombre_categoria,
                     s.subcategoria,
                     p.precio,
-                    p.stock
+                    p.stock,
+                    p.ruta_img
                 FROM 
                     Producto p
                 JOIN 
@@ -91,7 +91,8 @@ export async function mostrarProductos(categoria, subcategoria) {
                     s.subcategoria,
                     sp.subcategoria_padre categoriaPadre,  -- Subcategoría padre
                     p.precio,
-                    p.stock
+                    p.stock,
+                    p.ruta_img
                 FROM 
                     Producto p
                 JOIN 
@@ -111,9 +112,7 @@ export async function mostrarProductos(categoria, subcategoria) {
   } catch (err) {
     throw err;
     console.error(err);
-  } finally {
-    sql.close();
-  }
+  } 
 }
 
 export async function modificarProductoModel(
@@ -142,9 +141,7 @@ export async function modificarProductoModel(
   } catch (err) {
     throw err;
     console.error(err);
-  } finally {
-    sql.close();
-  }
+  } 
 }
 
 export async function modificarEstadoProductoModel(id, nuevoEstado) {
@@ -158,7 +155,5 @@ export async function modificarEstadoProductoModel(id, nuevoEstado) {
   } catch (err) {
     throw err;
     console.error(err);
-  } finally {
-    sql.close();
-  }
+  } 
 }
