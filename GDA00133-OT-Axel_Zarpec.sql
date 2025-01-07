@@ -404,6 +404,7 @@ CREATE PROCEDURE spInsertar_usuario
 
 AS
 BEGIN
+SET NOCOUNT ON;
 	BEGIN TRY
 		INSERT INTO usuarios(rol_fk,estados_fk,email,nombre,apellido,"password", telefono, fecha_nacimiento, fecha_creacion, cliente_fk)
 		VALUES (@rol,@estado, @email,@nombre,@apellido, @password, @telefono, @nacimiento, @fechaCreacion, @clienteFk);
@@ -412,6 +413,7 @@ BEGIN
 	BEGIN CATCH
 		PRINT 'OCURRIO UN ERROR:'+ERROR_MESSAGE();
 		END CATCH
+        SELECT SCOPE_IDENTITY() AS idUsuario;
 END;
 
 
