@@ -35,7 +35,7 @@ export async function AgregarCliente(
   } catch (err) {
     throw err;
     console.error(err);
-  } 
+  }
 }
 
 export async function modificarClienteModel(
@@ -93,13 +93,15 @@ export async function modificarEstadoClienteModel(id, nuevoEstado) {
   }
 }
 
-export async function mostrarClientesModel() {
+export async function mostrarClientesModel(estado) {
   try {
     await sql.connect(dbConfig);
+
     const result = await sql.query`
         SELECT u.idUsuario,u.nombre,u.apellido, u.email, u.telefono,r.nombreRol, e.nombreEstado from usuarios u
-INNER JOIN estados e ON u.estados_fk = e.idEstados
-INNER JOIN rol r ON r.idRol= u.rol_fk;`;
+        INNER JOIN estados e ON u.estados_fk = e.idEstados
+        INNER JOIN rol r ON r.idRol= u.rol_fk
+        WHERE e.nombreEstado=${estado ? "Inactivo" : "Activo"};`;
 
     return result.recordset;
   } catch (err) {
