@@ -5,58 +5,72 @@ export async function LoginModel(usuario) {
   try {
     await sql.connect(dbConfig);
     const result =
-      await sql.query`SELECT * FROM usuarios WHERE email = ${usuario}`;
+      await sql.query`SELECT u.idUsuario, u.nombre , u.apellido, u.password,r.nombreRol from usuarios u
+                      INNER JOIN rol r ON u.rol_fk = r.idRol
+                      WHERE email = ${usuario}`;
     return result.recordset;
   } catch (err) {
     throw err;
     console.error(err);
-  } finally {
-    sql.close();
-  }
+  } 
 }
 
-export async function agregarUsuarioModel(rol,estado,email,pass,nombre,apellido,telefono,nacimiento,fechaIngreso,){
-  try{
+export async function agregarUsuarioModel(
+  rol,
+  estado,
+  email,
+  pass,
+  nombre,
+  apellido,
+  telefono,
+  nacimiento,
+  fechaIngreso
+) {
+  try {
     await sql.connect(dbConfig);
     const result = await new sql.Request()
-    .input("rol",rol)
-    .input("estado",estado)
-    .input("email",email)
-    .input("nombre",nombre)
-    .input("apellido",apellido)
-    .input("password",pass)
-    .input("telefono",telefono)
-    .input("nacimiento",nacimiento)
-    .input("fechaCreacion",fechaIngreso)
-    .execute("spInsertar_usuario");
-    return result.recordset;
-  }catch(err){
+      .input("rol", rol)
+      .input("estado", estado)
+      .input("email", email)
+      .input("nombre", nombre)
+      .input("apellido", apellido)
+      .input("password", pass)
+      .input("telefono", telefono)
+      .input("nacimiento", nacimiento)
+      .input("fechaCreacion", fechaIngreso)
+      .execute("spInsertar_usuario");
+    return result.recordset[0].idUsuario;
+  } catch (err) {
     throw err;
     console.error(err);
-  }finally{
-    sql.close();
-  }
+  } 
 }
 
-export async function modificarUsuarioModel(idUsuario,rol,estado,email,nombre,apellido,telefono,nacimiento){
-  try{
+export async function modificarUsuarioModel(
+  idUsuario,
+  rol,
+  estado,
+  email,
+  nombre,
+  apellido,
+  telefono,
+  nacimiento
+) {
+  try {
     await sql.connect(dbConfig);
     const result = await new sql.Request()
-    .input("id",idUsuario)
-    .input("nuevoRol",rol)
-    .input("NuevoEstado",estado)
-    .input("nuevoEmail",email)
-    .input("NuevoNombre",nombre)
-    .input("NuevoApellido",apellido)
-    .input("nuevoTelefono",telefono)
-    .input("nuevoFechaNacimiento",nacimiento)
-    .execute("spModificarUsuario");
+      .input("id", idUsuario)
+      .input("nuevoRol", rol)
+      .input("NuevoEstado", estado)
+      .input("nuevoEmail", email)
+      .input("NuevoNombre", nombre)
+      .input("NuevoApellido", apellido)
+      .input("nuevoTelefono", telefono)
+      .input("nuevoFechaNacimiento", nacimiento)
+      .execute("spModificarUsuario");
     return result.recordset;
-  }catch(err){
+  } catch (err) {
     throw err;
     console.error(err);
-  }finally{
-    sql.close();
-  }
-
+  } 
 }
