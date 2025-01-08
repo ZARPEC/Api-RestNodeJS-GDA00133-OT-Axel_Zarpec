@@ -2,7 +2,8 @@ import {
   AgregarOrdenModel,
   mostrarOrdenesModel,
   modificarOrdenModel,
-  actualizarEstadoModel
+  actualizarEstadoModel,
+  mostrarOrdenesPendientesModel,
 } from "../models/ordenesModel.js";
 
 export async function agregarOrden(req, res) {
@@ -74,8 +75,9 @@ export async function modificarOrden(req, res) {
 
   try {
     const id = req.body.idorden;
-    const usuario = req.body.usuario_fk;
+    const usuario = req.body.usuario;
     const direccion = req.body.direccion;
+    console.log(req.body);
     const result = await modificarOrdenModel(id, usuario, direccion);
     res.status(200).json(result);
   } catch (err) {
@@ -88,11 +90,23 @@ export async function actualizarEstado(req, res) {
   try {
     const id = req.body.idorden;
     const estado = req.body.estado_fk;
+    console.log(req.body);
     const result = await actualizarEstadoModel(id, estado);
+    
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
     res.status(500).send("Error al modificar la orden");
   }
 
+}
+
+export async function mostrarOrdenesPendientes(req, res) {
+  try {
+    const result = await mostrarOrdenesPendientesModel();
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send("Error al mostrar las ordenes pendientes");
+  }
 }
