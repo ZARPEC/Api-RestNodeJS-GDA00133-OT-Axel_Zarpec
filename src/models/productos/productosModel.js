@@ -47,7 +47,8 @@ export async function mostrarProductos(categoria, subcategoria) {
                     s.subcategoria,
                     p.precio,
                     p.stock,
-                    p.ruta_img
+                    p.ruta_img,
+                    e.nombreEstado
                 FROM 
                     Producto p
                 JOIN 
@@ -55,6 +56,7 @@ export async function mostrarProductos(categoria, subcategoria) {
                 JOIN 
                     unidad_medida u ON p.unidad_medida_fk = u.idUnidad
                 join Categoria_producto c ON s.categoria_fk = c.idCategoria
+                JOIN estados e ON e.idEstados=p.estado
                 ORDER BY p.nombre_producto ASC `;
       return result.recordset;
     } else if (subcategoria == null) {
@@ -151,6 +153,38 @@ export async function modificarEstadoProductoModel(id, nuevoEstado) {
       .input("id", id)
       .input("nuevo", nuevoEstado)
       .execute("spModificar_Estado_Producto");
+    return result.recordset;
+  } catch (err) {
+    throw err;
+    console.error(err);
+  } 
+
+}
+export async function mostrarProductosInactivosModel() {
+  try {
+    await sql.connect(dbConfig);
+    const result = await sql.query`
+        SELECT 
+            p.idProducto,
+            p.nombre_producto,
+            u.unidad,
+            p.cantidad_medida,
+            c.nombre_categoria,
+            s.subcategoria,
+            p.precio,
+            p.stock,
+            p.ruta_img,
+            e.nombreEstado
+        FROM 
+            Producto p
+        JOIN 
+            Subcategoria s ON p.subcategoria_prod = s.idSubcategoria
+        JOIN 
+            unidad_medida u ON p.unidad_medida_fk = u.idUnidad
+        join Categoria_producto c ON s.categoria_fk = c.idCategoria
+        JOIN estados e ON e.idEstados=p.estado
+        WHERE p.estado = 3
+        ORDER BY p.nombre_producto ASC `;
     return result.recordset;
   } catch (err) {
     throw err;

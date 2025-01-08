@@ -3,6 +3,7 @@ import {
   agregarProducto,
   modificarProductoModel,
   modificarEstadoProductoModel,
+  mostrarProductosInactivosModel
 } from "../../models/productos/productosModel.js";
 
 export async function AgregarProducto(req, res) {
@@ -30,7 +31,7 @@ export async function AgregarProducto(req, res) {
     const nombreP = req.body.nombre_producto;
     const medidaCant = req.body.cantidad_medida;
     const unidadMedida = req.body.unidad_medida_fk;
-    const subcategoria = req.body.subcategoria_fk;
+    const subcategoria = req.body.subcategoria;
     const precio = req.body.precio;
     const stock = req.body.stock;
     const rutaimg = req.body.ruta_img;
@@ -47,6 +48,17 @@ export async function AgregarProducto(req, res) {
       fechaIngreso,
       estado
     );
+    console.log({
+      nombreP,
+      medidaCant,
+      unidadMedida,
+      subcategoria,
+      precio,
+      stock,
+      rutaimg,
+      fechaIngreso,
+      estado,
+    })
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
@@ -78,16 +90,37 @@ export async function MostrarProductos(req, res) {
   }
 }
 
+export async function MostrarProductosInactivos(req, res) {
+try{
+  const result = await mostrarProductosInactivosModel();
+  res.status(200).json(result);
+}catch(err){
+  console.log(err);
+  res.status(500).send("Error al mostrar los productos");
+}
+}
+
 export async function modificarProducto(req, res) {
   try {
     const idProducto = req.body.idProducto;
     const nombreP = req.body.nombre_producto;
     const medidaCant = req.body.cantidad_medida;
     const unidadMedida = req.body.unidad_medida_fk;
-    const subcategoria = req.body.subcategoria_fk;
+    const subcategoria = req.body.subcategoria;
     const precio = req.body.precio;
     const stock = req.body.stock;
     const rutaimg = req.body.ruta_img;
+    console.log({
+      idProducto,
+      nombreP,
+      medidaCant,
+      unidadMedida,
+      subcategoria,
+      precio,
+      stock,
+      rutaimg,
+    });
+    console.log(req.body);
     const result = await modificarProductoModel(
       idProducto,
       nombreP,
@@ -98,6 +131,8 @@ export async function modificarProducto(req, res) {
       stock,
       rutaimg
     );
+    
+    
     res.status(200).json(result);
   } catch (err) {
     console.log(err);
