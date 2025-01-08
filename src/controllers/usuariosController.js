@@ -94,6 +94,7 @@ export async function agregarUsuario(req, res) {
 }
 
 export async function ModificarUsuario(req, res) {
+  const salt = 10;
   try {
     const {
       idUsuario,
@@ -104,30 +105,74 @@ export async function ModificarUsuario(req, res) {
       apellido,
       telefono,
       nacimiento,
+      password,
     } = req.body;
-    console.log({
-      idUsuario,
-      rol,
-      estado,
-      email,
-      nombre,
-      apellido,
-      telefono,
-      nacimiento,
+
+    
+    if (typeof password === "undefined" || password.trim() === "") {
+      try {
+        const result = await modificarUsuarioModel(
+          idUsuario,
+          rol,
+          estado,
+          email,
+          nombre,
+          apellido,
+          telefono,
+          nacimiento,
+          password,
+        );
+        res.status(200).json({ success: true, id: result });
+      } catch (err) {
+        console.error(err);
+        res.status(500).send("Error al modificar el usuario");
+      }
+    }else{
+
+    // Generar hash de la contraseña
+    bcrypt.hash(password, salt, async (err, hash) => {
+      if (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .send("Ha ocurrido un error al crear la contraseña");
+      }
+
+      console.log({
+        idUsuario,
+        rol,
+        estado,
+        email,
+        nombre,
+        apellido,
+        telefono,
+        nacimiento,
+        hash,
+      });
+
+      try {
+        const result = await modificarUsuarioModel(
+          idUsuario,
+          rol,
+          estado,
+          email,
+          nombre,
+          apellido,
+          telefono,
+          nacimiento,
+          hash
+        );
+        res.status(200).json({ success: true, id: result });
+      } catch (err) {
+        console.error(err);
+        res.status(500).send("Error al modificar el usuario");
+      }
     });
-    const result = await modificarUsuarioModel(
-      idUsuario,
-      rol,
-      estado,
-      email,
-      nombre,
-      apellido,
-      telefono,
-      nacimiento
-    );
-    res.status(200).json({ success: true });
+  }
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).send("Error al modificar el usuario");
   }
+  
 }
+

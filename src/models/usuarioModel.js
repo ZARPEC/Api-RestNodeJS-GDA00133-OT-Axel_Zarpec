@@ -54,7 +54,8 @@ export async function modificarUsuarioModel(
   nombre,
   apellido,
   telefono,
-  nacimiento
+  nacimiento,
+  password
 ) {
   try {
     await sql.connect(dbConfig);
@@ -63,6 +64,7 @@ export async function modificarUsuarioModel(
       .input("nuevoRol", rol)
       .input("NuevoEstado", estado)
       .input("nuevoEmail", email)
+      .input("nuevaContraseña",password)
       .input("NuevoNombre", nombre)
       .input("NuevoApellido", apellido)
       .input("nuevoTelefono", telefono)
