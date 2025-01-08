@@ -8,6 +8,7 @@ import ordenesRoutes from './src/routes/ordenesRoutes.js';
 import usuarioRoutes from './src/routes/usuariosRoutes.js';
 import estadoRoutes from './src/routes/estadosRoutes.js';
 import rolesRoutes from './src/routes/rolRoutes.js';
+import unidadMedidaRoutes from './src/routes/unidadMedidaRoutes.js';
 import authenticateToken from './src/middleware/authMiddleware.js';
 
 
@@ -31,6 +32,8 @@ app.use('/usuario', usuarioRoutes);
 app.use('/estado',authenticateToken, estadoRoutes);
 //operaciones con roles
 app.use('/roles',authenticateToken, rolesRoutes);
+//operaciones con unidades de medida
+app.use('/unidadmedida',authenticateToken, unidadMedidaRoutes);
 
 app.listen(port,'0.0.0.0', () => {
     console.log(`Servidor escuchando en http://localhost:${port}`);
