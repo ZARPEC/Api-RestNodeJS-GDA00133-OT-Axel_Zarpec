@@ -74,15 +74,35 @@ GROUP BY
       return result.recordset;
     } else {
       const result = await sql.query`
-      SELECT idorden, u.nombre, u.apellido, u.email, c.nombre_Comercial, o.direccion, p.nombre_producto, p.cantidad_medida,
-              cantidad, p.precio, (p.precio * cantidad) total, o.fecha_orden, e.nombreEstado
-      FROM DETALLES_ORDEN dt
-      INNER JOIN orden o ON o.idorden = dt.orden
-      INNER JOIN usuarios u ON o.usuario_fk = u.idUsuario
-      INNER JOIN Clientes c ON c.idCliente = u.cliente_fk
-      INNER JOIN producto p ON dt.producto_orden = p.idproducto
-      INNER JOIN estados e ON o.estado_fk = e.idEstados
-      WHERE c.idCliente = ${idCliente}`;
+      SELECT 
+    idorden, 
+    u.nombre, 
+    u.apellido, 
+    u.email, 
+    c.nombre_Comercial, 
+    o.direccion, 
+    STRING_AGG(
+        CONCAT(p.nombre_producto, ' (', p.cantidad_medida, ': ', dt.cantidad, ' x ', p.precio, ')'), 
+        ', ' 
+    ) AS productos, 
+    SUM(p.precio * dt.cantidad) AS total, 
+    o.fecha_orden, 
+    e.nombreEstado
+FROM 
+    DETALLES_ORDEN dt
+INNER JOIN 
+    orden o ON o.idorden = dt.orden
+INNER JOIN 
+    usuarios u ON o.usuario_fk = u.idUsuario
+INNER JOIN 
+    Clientes c ON c.idCliente = u.cliente_fk
+INNER JOIN 
+    producto p ON dt.producto_orden = p.idproducto
+INNER JOIN 
+    estados e ON o.estado_fk = e.idEstados
+    where c.idCliente = ${idCliente}
+GROUP BY 
+    idorden, u.nombre, u.apellido, u.email, c.nombre_Comercial, o.direccion, o.fecha_orden, e.nombreEstado;`;
       return result.recordset;
     }
   } catch (err) {
