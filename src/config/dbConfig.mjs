@@ -11,5 +11,3 @@ const dbConfig ={
         trustedConnection: true,
     },
 };
-
-export default dbConfig;
