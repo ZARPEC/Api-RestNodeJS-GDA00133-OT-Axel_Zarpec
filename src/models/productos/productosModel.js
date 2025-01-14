@@ -1,5 +1,11 @@
 import sql from "mssql";
 import dbConfig from "../../config/dbConfig.mjs";
+import sequelize from "../../config/dbConfig.mjs";
+import SubcategoriaProducto from "../sequelize/subcategoria.js";
+import Productos from "../sequelize/productos.js";
+import UnidadMedidaProducto from "../sequelize/unidadMedida.js";
+import CategoriaProducto from "../sequelize/categoria.js";
+import EstadosProducto from "../sequelize/estados.js";
 
 export async function agregarProducto(
   nombreP,
@@ -29,92 +35,162 @@ export async function agregarProducto(
   } catch (err) {
     throw err;
     console.error(err);
-  } 
+  }
 }
 
 export async function mostrarProductos(categoria, subcategoria) {
   try {
-    await sql.connect(dbConfig);
+    await sequelize.authenticate();
+
     if (categoria == null && subcategoria == null) {
-      console.log("entro a subcategoria null y categoria null");
-      const result = await sql.query`
-                SELECT 
-                    p.idProducto,
-                    p.nombre_producto,
-                    u.unidad,
-                    p.cantidad_medida,
-                    c.nombre_categoria,
-                    s.subcategoria,
-                    p.precio,
-                    p.stock,
-                    p.ruta_img,
-                    e.nombreEstado
-                FROM 
-                    Producto p
-                JOIN 
-                    Subcategoria s ON p.subcategoria_prod = s.idSubcategoria
-                JOIN 
-                    unidad_medida u ON p.unidad_medida_fk = u.idUnidad
-                join Categoria_producto c ON s.categoria_fk = c.idCategoria
-                JOIN estados e ON e.idEstados=p.estado
-                ORDER BY p.nombre_producto ASC `;
-      return result.recordset;
+      console.log("Entro a subcategoria null y categoria null");
+
+      const productos = await Productos.findAll({
+        attributes: [
+          "idProducto",
+          "nombre_producto",
+          "cantidad_medida",
+          "precio",
+          "stock",
+          "ruta_img",
+        ],
+        include: [
+          {
+            model: SubcategoriaProducto,
+            as: "subcategoria",
+            attributes: [["subcategoria", "nombreSubcategoria"]],
+            include: [
+              {
+                model: CategoriaProducto,
+                as: "categoria",
+                attributes: [["nombre_categoria", "nombreCategoria"]],
+              },
+            ],
+          },
+          {
+            model: UnidadMedidaProducto,
+            as: "unidadmedida",
+            attributes: [["unidad", "unidadMedida"]],
+          },
+          {
+            model: EstadosProducto,
+            as: "estadofk",
+            attributes: [["nombreEstado", "estadofk"]],
+          },
+        ],
+        raw: true, // Devuelve los resultados en formato plano
+        nest: true, // Organiza los alias de manera jerárquica para evitar colisiones
+        order: [["nombre_producto", "ASC"]],
+      });
+
+      const productosordenados = productosPlanos(productos);
+
+      return productosordenados;
     } else if (subcategoria == null) {
-      console.log("entro a subcategoria null");
-      const result = await sql.query`
-                SELECT
-                    p.idProducto,
-                    p.nombre_producto,
-                    u.unidad,
-                    p.cantidad_medida,
-                    c.nombre_categoria,
-                    s.subcategoria,
-                    p.precio,
-                    p.stock,
-                    p.ruta_img
-                FROM 
-                    Producto p
-                JOIN 
-                    Subcategoria s ON p.subcategoria_prod = s.idSubcategoria
-                JOIN 
-                    unidad_medida u ON p.unidad_medida_fk = u.idUnidad
-                join Categoria_producto c ON s.categoria_fk = c.idCategoria
-                WHERE c.nombre_categoria = ${categoria}
-                ORDER BY p.nombre_producto ASC `;
-      return result.recordset;
+      console.log("Entro a subcategoria null");
+
+      const productos = await Productos.findAll({
+        attributes: [
+          "idProducto",
+          "nombre_producto",
+          "cantidad_medida",
+          "precio",
+          "stock",
+          "ruta_img",
+        ],
+        include: [
+          {
+            model: SubcategoriaProducto,
+            as: "subcategoria",
+            attributes: [["subcategoria", "nombreSubcategoria"]],
+            required: true, 
+            include: [
+              {
+                model: CategoriaProducto,
+                as: "categoria",
+                attributes: [["nombre_categoria", "nombreCategoria"]],
+                where: { nombre_categoria: categoria }, 
+                required: true, 
+              },
+            ],
+          },
+          {
+            model: UnidadMedidaProducto,
+            as: "unidadmedida",
+            attributes: [["unidad", "unidadMedida"]],
+            required: false, // Opcional, puede estar ausente
+          },
+          {
+            model: EstadosProducto,
+            as: "estadofk",
+            attributes: [["nombreEstado", "estado"]],
+            required: false, // Opcional, puede estar ausente
+          },
+        ],
+        raw: true,
+        nest: true,
+        order: [["nombre_producto", "ASC"]],
+      });
+
+      const productosordenados = productosPlanos(productos);
+
+      return productosordenados;
     } else {
-      const result = await sql.query`
-                SELECT 
-                    p.idProducto,
-                    p.nombre_producto,
-                    u.unidad,
-                    p.cantidad_medida,
-                    c.nombre_categoria,
-                    s.subcategoria,
-                    sp.subcategoria_padre categoriaPadre,  -- Subcategoría padre
-                    p.precio,
-                    p.stock,
-                    p.ruta_img
-                FROM 
-                    Producto p
-                JOIN 
-                    Subcategoria s ON p.subcategoria_prod = s.idSubcategoria
-                JOIN 
-                    unidad_medida u ON p.unidad_medida_fk = u.idUnidad
-                JOIN 
-                    Categoria_producto c ON s.categoria_fk = c.idCategoria
-                LEFT JOIN 
-                    subcategoria sp ON s.subcategoria_padre = sp.idSubcategoria  -- Unir para obtener la subcategoría padre
-                WHERE 
-                    s.subcategoria = ${subcategoria} or sp.subcategoria = ${subcategoria} 
-                ORDER BY 
-                    p.nombre_producto ASC `;
-      return result.recordset;
+      console.log("Entro a categoría y subcategoría");
+
+      const productos = await Productos.findAll({
+        attributes: [
+          "idProducto",
+          "nombre_producto",
+          "cantidad_medida",
+          "precio",
+          "stock",
+          "ruta_img",
+        ],
+        include: [
+          {
+            model: SubcategoriaProducto,
+            as: "subcategoria",
+            attributes: [["subcategoria", "nombreSubcategoria"]],
+            where: { subcategoria: subcategoria },
+            required: true, 
+            include: [
+              {
+                model: CategoriaProducto,
+                as: "categoria",
+                attributes: [["nombre_categoria", "nombreCategoria"]],
+                where: { nombre_categoria: categoria }, 
+                required: true, 
+              },
+            ],
+          },
+          {
+            model: UnidadMedidaProducto,
+            as: "unidadmedida",
+            attributes: [["unidad", "unidadMedida"]],
+            required: false, 
+          },
+          {
+            model: EstadosProducto,
+            as: "estadofk",
+            attributes: [["nombreEstado", "estado"]],
+            required: false, 
+          },
+        ],
+        raw: true,
+        nest: true,
+        order: [["nombre_producto", "ASC"]],
+      });
+      console.log(productos);
+
+      const productosordenados = productosPlanos(productos);
+
+      return productosordenados;
     }
   } catch (err) {
-    throw err;
     console.error(err);
-  } 
+    throw err;
+  }
 }
 
 export async function modificarProductoModel(
@@ -143,7 +219,7 @@ export async function modificarProductoModel(
   } catch (err) {
     throw err;
     console.error(err);
-  } 
+  }
 }
 
 export async function modificarEstadoProductoModel(id, nuevoEstado) {
@@ -157,8 +233,7 @@ export async function modificarEstadoProductoModel(id, nuevoEstado) {
   } catch (err) {
     throw err;
     console.error(err);
-  } 
-
+  }
 }
 export async function mostrarProductosInactivosModel() {
   try {
@@ -189,5 +264,25 @@ export async function mostrarProductosInactivosModel() {
   } catch (err) {
     throw err;
     console.error(err);
-  } 
+  }
+}
+
+function productosPlanos(productos) {
+  return productos.map((producto) => {
+    return {
+      idProducto: producto.idProducto,
+      nombre_producto: producto.nombre_producto,
+      cantidad_medida: producto.cantidad_medida,
+      precio: producto.precio,
+      stock: producto.stock,
+      ruta_img: producto.ruta_img,
+      nombreSubcategoria: producto.subcategoria?.nombreSubcategoria || null,
+      idCategoria: producto.subcategoria?.categoria?.idCategoria || null,
+      nombreCategoria:
+        producto.subcategoria?.categoria?.nombreCategoria || null,
+      unidadMedida: producto.unidadmedida?.unidadMedida || null,
+      estado: producto.estadofk?.estado || null,
+    };
+  });
+  return productos;
 }
