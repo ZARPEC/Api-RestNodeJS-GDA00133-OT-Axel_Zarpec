@@ -1,13 +1,27 @@
+import { Sequelize } from "sequelize";
+
+
 const dbConfig ={
-    user: 'zarpec1',
+    username: 'zarpec1',
     password: 'hola',
-    server: 'localhost',
+    host: 'localhost',
     port: 1433,
     database: 'GDA00133-OT_Axel-Zarpec',
     dialect: 'mssql',
-    options:{
+    dialectOptions:{
         encrypt: true,
         trustServerCertificate: true,
         trustedConnection: true,
     },
 };
+
+const sequelize = new Sequelize(
+  dbConfig.database, dbConfig.username, dbConfig.password, {
+  host: dbConfig.host,
+  port : dbConfig.port,
+  dialect: dbConfig.dialect,
+  logging: false,
+  }
+);
+
+export default sequelize;
