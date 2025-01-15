@@ -1,6 +1,10 @@
 import sql from "mssql";
 import dbConfig from "../../config/dbConfig.mjs";
-
+import categoriaSequelize from "../sequelize/categoria.js";
+import subcategoriaSequelize from "../sequelize/subcategoria.js";
+import Sequelize from "sequelize";
+import sequelize from "../../config/dbConfig.mjs";
+const { Op } = Sequelize;
 //categorias
 export async function agregarCategoria(nombreCategoria) {
   try {
@@ -19,16 +23,17 @@ export async function agregarCategoria(nombreCategoria) {
 
 export async function mostrarCategoriasModel() {
   try {
-    await sql.connect(dbConfig);
-    const result = await sql.query`select * from dbo.Categoria_producto`;
-    return result.recordset;
+    await sequelize.authenticate();
+    const categorias = await categoriaSequelize.findAll({
+      attributes: ["idCategoria", "nombre_categoria"],
+    });
+    return categorias;
   } catch (err) {
     throw err;
-  } 
+  }
 }
 
 export async function modificarCategoriaModel(idCategoria, nombreCategoria) {
-
   try {
     await sql.connect(dbConfig);
     const result = await new sql.Request()
@@ -39,7 +44,7 @@ export async function modificarCategoriaModel(idCategoria, nombreCategoria) {
   } catch (err) {
     throw err;
     console.error(err);
-  } 
+  }
 }
 
 //subcategorias
@@ -59,32 +64,54 @@ export async function agregarSubCategoria(
   } catch (err) {
     throw err;
     console.error(err);
-  } 
+  }
 }
 
-export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {// muestra las subcategorias asi como subcategorias hijas
+export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {
+  // muestra las subcategorias asi como subcategorias hijas
   try {
-    await sql.connect(dbConfig);
-    if (subcategoriaGet == null) {//muestra las subcategorias
-      const result = await sql.query`
-                SELECT s.idSubcategoria, s.subcategoria, c.nombre_categoria
-            FROM Subcategoria s
-            JOIN Categoria_producto c ON s.categoria_fk = c.idCategoria
-            WHERE c.nombre_categoria = ${categoriaGet}
-            AND (s.subcategoria_padre IS NULL OR s.subcategoria_padre = 0)`;
-        return result.recordset;
-    }else{//muestra las subcategorias hijas
-        console.log("entro a subcategoria no null");
-        const result = await sql.query`
-        SELECT s.idSubcategoria, s.subcategoria, c.nombre_categoria
-            FROM Subcategoria s
-            JOIN Categoria_producto c ON s.categoria_fk = c.idCategoria
-            WHERE s.subcategoria_padre IN (
-            SELECT idSubcategoria 
-            FROM Subcategoria 
-            WHERE s.subcategoria = ${subcategoriaGet})`;
-        return result.recordset;
+    await sequelize.authenticate();
+    if (subcategoriaGet == null) {
+      //muestra las subcategorias
+      const subcategorias = await subcategoriaSequelize.findAll({
+        attributes: ["idSubcategoria", "subcategoria"], // Selecciona las columnas de Subcategoria
+        include: [
+          {
+            model: categoriaSequelize,
+            as: "categoria",
+            attributes: ["nombre_categoria"], // Selecciona las columnas de CategoriaProducto
+            where: { nombre_categoria: categoriaGet }, // Filtra por nombre de categoría
+          },
+        ],
+        raw: true,
+        nest: true,
+        where: {
+          [Op.or]: [{ subcategoria_padre: null }, { subcategoria_padre: 0 }],
+        },
+      });
 
+      return subcategorias;
+    } else {
+      //muestra las subcategorias hijas
+      console.log("entro a subcategoria no null");
+      const subcategorias = await sequelize.models.Subcategoria.findAll({
+        attributes: ["idSubcategoria", "subcategoria"], // Selecciona las columnas necesarias
+        include: [
+          {
+            model: categoriaSequelize,
+            as: "categoria",
+            attributes: ["nombre_categoria"], // Selecciona las columnas de CategoriaProducto
+          },
+        ],
+        where: sequelize.where(sequelize.col("subcategoria_padre"), {
+          [Op.in]: sequelize.literal(`(
+              SELECT idSubcategoria 
+              FROM Subcategoria 
+              WHERE subcategoria = '${subcategoriaGet}'
+            )`),
+        }),
+      });
+      return subcategorias;
     }
   } catch (err) {
     throw err;
@@ -92,7 +119,12 @@ export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {// mu
   }
 }
 
-export async function modificarSubCategoriaModel(idSubcategoria,nombreSubcategoria,subcategoria_padre,categoria_fk){
+export async function modificarSubCategoriaModel(
+  idSubcategoria,
+  nombreSubcategoria,
+  subcategoria_padre,
+  categoria_fk
+) {
   try {
     await sql.connect(dbConfig);
     const result = await new sql.Request()
@@ -105,7 +137,7 @@ export async function modificarSubCategoriaModel(idSubcategoria,nombreSubcategor
   } catch (err) {
     throw err;
     console.error(err);
-  } 
+  }
 }
 
 /* 
