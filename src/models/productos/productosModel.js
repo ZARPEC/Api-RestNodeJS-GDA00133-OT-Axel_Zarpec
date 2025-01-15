@@ -43,8 +43,7 @@ export async function mostrarProductos(categoria, subcategoria) {
     await sequelize.authenticate();
 
     if (categoria == null && subcategoria == null) {
-      console.log("Entro a subcategoria null y categoria null");
-
+      //categoria y subcategoria son nulos
       const productos = await Productos.findAll({
         attributes: [
           "idProducto",
@@ -59,6 +58,7 @@ export async function mostrarProductos(categoria, subcategoria) {
             model: SubcategoriaProducto,
             as: "subcategoria",
             attributes: [["subcategoria", "nombreSubcategoria"]],
+            required: true,
             include: [
               {
                 model: CategoriaProducto,
@@ -87,7 +87,7 @@ export async function mostrarProductos(categoria, subcategoria) {
 
       return productosordenados;
     } else if (subcategoria == null) {
-      console.log("Entro a subcategoria null");
+      //entra a categoria
 
       const productos = await Productos.findAll({
         attributes: [
@@ -103,14 +103,14 @@ export async function mostrarProductos(categoria, subcategoria) {
             model: SubcategoriaProducto,
             as: "subcategoria",
             attributes: [["subcategoria", "nombreSubcategoria"]],
-            required: true, 
+            required: true,
             include: [
               {
                 model: CategoriaProducto,
                 as: "categoria",
                 attributes: [["nombre_categoria", "nombreCategoria"]],
-                where: { nombre_categoria: categoria }, 
-                required: true, 
+                where: { nombre_categoria: categoria },
+                required: true,
               },
             ],
           },
@@ -136,7 +136,7 @@ export async function mostrarProductos(categoria, subcategoria) {
 
       return productosordenados;
     } else {
-      console.log("Entro a categoría y subcategoría");
+      // entro a categoria y subcategoria
 
       const productos = await Productos.findAll({
         attributes: [
@@ -153,14 +153,14 @@ export async function mostrarProductos(categoria, subcategoria) {
             as: "subcategoria",
             attributes: [["subcategoria", "nombreSubcategoria"]],
             where: { subcategoria: subcategoria },
-            required: true, 
+            required: true,
             include: [
               {
                 model: CategoriaProducto,
                 as: "categoria",
                 attributes: [["nombre_categoria", "nombreCategoria"]],
-                where: { nombre_categoria: categoria }, 
-                required: true, 
+                where: { nombre_categoria: categoria },
+                required: true,
               },
             ],
           },
@@ -168,27 +168,25 @@ export async function mostrarProductos(categoria, subcategoria) {
             model: UnidadMedidaProducto,
             as: "unidadmedida",
             attributes: [["unidad", "unidadMedida"]],
-            required: false, 
+            required: false,
           },
           {
             model: EstadosProducto,
             as: "estadofk",
             attributes: [["nombreEstado", "estado"]],
-            required: false, 
+            required: false,
           },
         ],
         raw: true,
         nest: true,
         order: [["nombre_producto", "ASC"]],
       });
-      console.log(productos);
 
       const productosordenados = productosPlanos(productos);
 
       return productosordenados;
     }
   } catch (err) {
-    console.error(err);
     throw err;
   }
 }
@@ -204,21 +202,29 @@ export async function modificarProductoModel(
   NrutaImg
 ) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("id", id)
-      .input("nuevoNombre", Nnombre)
-      .input("nuevaCantidadMedida", NcantidadMedida)
-      .input("nuevaUnidadMedida", NunidadMedida)
-      .input("nuevaSubcategoria", Nsubcategoria)
-      .input("nuevoPrecio", Nprecio)
-      .input("nuevoStock", Nstock)
-      .input("nuevaRutaImg", NrutaImg)
-      .execute("spModificarProducto");
-    return result.recordset;
+    // Llama al procedimiento almacenado usando una consulta sin procesar
+    const result = await sequelize.query(
+      `EXEC spModificarProducto :id, :Nnombre, :NcantidadMedida, :NunidadMedida, :Nsubcategoria, :Nprecio, :Nstock, :NrutaImg`,
+      {
+        replacements: {
+          id,
+          Nnombre,
+          NcantidadMedida,
+          NunidadMedida,
+          Nsubcategoria,
+          Nprecio,
+          Nstock,
+          NrutaImg,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+
+    // Devuelve los resultados del procedimiento almacenado (si los hay)
+    return result;
   } catch (err) {
-    throw err;
     console.error(err);
+    throw err;
   }
 }
 
