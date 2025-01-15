@@ -1,18 +1,47 @@
 import sql from "mssql";
-import dbConfig from "../config/dbConfig.mjs";
+import sequelize from "../config/dbConfig.mjs";
+import usuarioSequelize from "./sequelize/usuarios.js";
+import RolSequelize from "./sequelize/rol.js";
+import EstadoSequelize from "./sequelize/estados.js";
 
 export async function LoginModel(usuario) {
   try {
-    await sql.connect(dbConfig);
-    const result =
-      await sql.query`SELECT u.idUsuario, u.nombre , u.apellido, u.password,r.nombreRol from usuarios u
-                      INNER JOIN rol r ON u.rol_fk = r.idRol
-                      WHERE email = ${usuario}`;
-    return result.recordset;
+    console.log(usuario);
+    await sequelize.authenticate();
+    const result = await usuarioSequelize.findOne({
+      attributes: [
+        "idUsuario",
+        "rol_fk",
+        "email",
+        "password",
+        "nombre",
+        "apellido",
+        "telefono",
+        "fecha_nacimiento",
+        "fecha_creacion",
+      ],
+      include: [
+        {
+          model: RolSequelize,
+          as: "rolfk",
+          attributes: ["idRol", "nombreRol"],
+        },
+        {
+          model: EstadoSequelize,
+          as: "estadofk",
+          attributes: ["idEstados", "nombreEstado"],
+        },
+      ],
+      nest: true,
+      where: {
+        email: usuario,
+      },
+    });
+    return result;
   } catch (err) {
     throw err;
     console.error(err);
-  } 
+  }
 }
 
 export async function agregarUsuarioModel(
@@ -27,23 +56,29 @@ export async function agregarUsuarioModel(
   fechaIngreso
 ) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("rol", rol)
-      .input("estado", estado)
-      .input("email", email)
-      .input("nombre", nombre)
-      .input("apellido", apellido)
-      .input("password", pass)
-      .input("telefono", telefono)
-      .input("nacimiento", nacimiento)
-      .input("fechaCreacion", fechaIngreso)
-      .execute("spInsertar_usuario");
-    return result.recordset[0].idUsuario;
+
+
+    const result = await sequelize.query(
+      `EXEC spInsertar_usuario :rol, :estado, :email, :nombre, :apellido, :password, :telefono, :nacimiento, :fechaCreacion`,
+      {
+        replacements: {
+          rol: rol,
+          estado: 1,
+          email: email,
+          nombre: nombre,
+          apellido: apellido,
+          password: pass,
+          telefono: telefono,
+          nacimiento: nacimiento,
+          fechaCreacion: fechaIngreso,
+        },
+      }
+    )
+    console.log(result[0][0].idUsuario);
+    return result[0][0].idUsuario;
   } catch (err) {
     throw err;
-    console.error(err);
-  } 
+  }
 }
 
 export async function modificarUsuarioModel(
@@ -58,21 +93,24 @@ export async function modificarUsuarioModel(
   password
 ) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("id", idUsuario)
-      .input("nuevoRol", rol)
-      .input("NuevoEstado", estado)
-      .input("nuevoEmail", email)
-      .input("nuevaContraseña",password)
-      .input("NuevoNombre", nombre)
-      .input("NuevoApellido", apellido)
-      .input("nuevoTelefono", telefono)
-      .input("nuevoFechaNacimiento", nacimiento)
-      .execute("spModificarUsuario");
-    return result.recordset;
+    const result = await sequelize.query(
+      `EXEC spModificarUsuario :id, :nuevoRol, :NuevoEstado, :nuevoEmail, :NuevoNombre, :nuevapass,  :NuevoApellido, :nuevoTelefono, :nuevoFechaNacimiento`,
+      {
+        replacements: {
+          id: idUsuario||null,
+          nuevoRol: rol||null,
+          NuevoEstado: estado||null,
+          nuevoEmail: email||null,
+          NuevoNombre: nombre||null,
+          nuevapass: password||null,
+          NuevoApellido: apellido||null,
+          nuevoTelefono: telefono||null,
+          nuevoFechaNacimiento: nacimiento||null,
+        },
+      }
+    );
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
-  } 
+  }
 }

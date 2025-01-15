@@ -10,20 +10,24 @@ export async function Login(req, res) {
   try {
     const { email, password } = req.body;
     const user = await LoginModel(email);
-    if (user.length === 0) {
-      return res.status(400).json({ message: "Usuario no encontrado" });
+   
+    if (user ==null) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    } 
+    else if (user.estadofk.nombreEstado === "Inactivo") {
+      return res.status(403).json({ message: "Usuario inactivo" }); //pendiente de terminsr
     }
-    const validPass = await bcrypt.compare(password, user[0].password);
+
+    const validPass = await bcrypt.compare(password, user.password);
     if (!validPass) {
-      return res.status(400).json({ message: "Contraseña incorrecta" });
+      return res.status(401).json({ message: "Contraseña incorrecta" });
     }
-    console.log(user[0]);
     const token = jwt.sign(
       {
-        id: user[0].idUsuario,
-        nombreUsuario: user[0].nombre,
-        apellidoUsuario: user[0].apellido,
-        rol: user[0].nombreRol,
+        id: user.idUsuario,
+        nombreUsuario: user.nombre,
+        apellidoUsuario: user.apellido,
+        rol: user.rolfk.nombreRol,
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRATION }
@@ -31,7 +35,7 @@ export async function Login(req, res) {
     console.log(token);
     res.status(200).json({ message: "Usuario logueado", token: token });
   } catch (error) {
-    console.log(error);
+    
     res.status(500).send("Error al loguear el usuario");
   }
 }
@@ -80,6 +84,7 @@ export async function agregarUsuario(req, res) {
             nacimiento,
             fechaIngreso
           );
+          
           res.status(200).json({ success: true, id: result });
         } catch (err) {
           console.log(err);
@@ -108,7 +113,6 @@ export async function ModificarUsuario(req, res) {
       password,
     } = req.body;
 
-    
     if (typeof password === "undefined" || password.trim() === "") {
       try {
         const result = await modificarUsuarioModel(
@@ -120,38 +124,24 @@ export async function ModificarUsuario(req, res) {
           apellido,
           telefono,
           nacimiento,
-          password,
+          password
         );
         res.status(200).json({ success: true, id: result });
       } catch (err) {
         console.error(err);
         res.status(500).send("Error al modificar el usuario");
       }
-    }else{
+    } else {
+      // Generar hash de la contraseña
+      bcrypt.hash(password, salt, async (err, hash) => {
+        if (err) {
+          console.error(err);
+          return res
+            .status(500)
+            .send("Ha ocurrido un error al crear la contraseña");
+        }
 
-    // Generar hash de la contraseña
-    bcrypt.hash(password, salt, async (err, hash) => {
-      if (err) {
-        console.error(err);
-        return res
-          .status(500)
-          .send("Ha ocurrido un error al crear la contraseña");
-      }
-
-      console.log({
-        idUsuario,
-        rol,
-        estado,
-        email,
-        nombre,
-        apellido,
-        telefono,
-        nacimiento,
-        hash,
-      });
-
-      try {
-        const result = await modificarUsuarioModel(
+        console.log({
           idUsuario,
           rol,
           estado,
@@ -160,19 +150,30 @@ export async function ModificarUsuario(req, res) {
           apellido,
           telefono,
           nacimiento,
-          hash
-        );
-        res.status(200).json({ success: true, id: result });
-      } catch (err) {
-        console.error(err);
-        res.status(500).send("Error al modificar el usuario");
-      }
-    });
-  }
+          hash,
+        });
+
+        try {
+          const result = await modificarUsuarioModel(
+            idUsuario,
+            rol,
+            estado,
+            email,
+            nombre,
+            apellido,
+            telefono,
+            nacimiento,
+            hash
+          );
+          res.status(200).json({ success: true, id: result });
+        } catch (err) {
+          console.error(err);
+          res.status(500).send("Error al modificar el usuario");
+        }
+      });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).send("Error al modificar el usuario");
   }
-  
 }
-
