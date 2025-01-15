@@ -1,5 +1,10 @@
 import sql from "mssql";
-import dbConfig from "../../config/dbConfig.mjs";
+import Sequelize from "sequelize";
+import sequelize from "../../config/dbConfig.mjs";
+import ClienteSequelize from "../sequelize/Cliente.js";
+import RolSequelize from "../sequelize/rol.js";
+import UsuariosSequelize from "../sequelize/usuarios.js";
+import EstadoSequelize from "../sequelize/estados.js";
 
 export async function AgregarCliente(
   nit,
@@ -52,60 +57,79 @@ export async function modificarClienteModel(
   fechaNaciemiento
 ) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("idCliente", idCliente)
-      .input("razon_Social", nit)
-      .input("nombre_Comercial", nombre_comercial)
-      .input("direccion_Entrega", direccion)
-      .input("telefonoCliente", telefono)
-      .input("emailCliente", email)
-      .input("rol_fk", rol_fk)
-      .input("estados_fk", estado_fk)
-      .input("emailUsuario", email)
-      .input("nombreUsuario", nombreUsuario)
-      .input("apellidoUsuario", apellido)
-      .input("telefonoUsuario", telefono)
-      .input("fecha_nacimiento", fechaNaciemiento)
-      .execute("spModificarClienteYUsuario");
-    return result.recordset;
+    const result = await sequelize.query(
+      `EXEC spModificarClienteYUsuario :idCliente, :razon_Social, :nombre_Comercial, 
+      :direccion_Entrega, :telefonoCliente, :emailCliente, :rol_fk, :estados_fk, :emailUsuario,
+      :nombreUsuario, :apellidoUsuario, :telefonoUsuario, :fecha_nacimiento`,
+      {
+        replacements: {
+          idCliente: idCliente,
+          razon_Social: nit,
+          nombre_Comercial: nombre_comercial,
+          direccion_Entrega: direccion,
+          telefonoCliente: telefono,
+          emailCliente: email,
+          rol_fk: rol_fk,
+          estados_fk: estado_fk,
+          emailUsuario: email,
+          nombreUsuario: nombreUsuario,
+          apellidoUsuario: apellido,
+          telefonoUsuario: telefono,
+          fecha_nacimiento: fechaNaciemiento,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
-  } finally {
-    sql.close();
   }
 }
 
-export async function modificarEstadoClienteModel(id, nuevoEstado) {
+export async function modificarEstadoClienteModel(id, nuevo) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("id", id)
-      .input("nuevo", nuevoEstado)
-      .execute("spModificar_estados_tUsuario");
-    return result.recordset;
+    const result = await sequelize.query(
+      `EXEC spModificar_estados_tUsuario :id, :nuevo`,
+      {
+        replacements: {
+          id: id,
+          nuevo: nuevo,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
-  } finally {
-    sql.close();
   }
 }
 
-export async function mostrarClientesModel(estado) {
+export async function mostrarClientesModel(estadoInactivo) {
   try {
-    await sql.connect(dbConfig);
-
-    const result = await sql.query`
-        SELECT u.idUsuario,u.nombre,u.apellido, u.email, u.telefono,r.nombreRol, e.nombreEstado from usuarios u
-        INNER JOIN estados e ON u.estados_fk = e.idEstados
-        INNER JOIN rol r ON r.idRol= u.rol_fk
-        WHERE e.nombreEstado=${estado ? "Inactivo" : "Activo"};`;
-
-    return result.recordset;
+    await sequelize.authenticate();
+    const usuarios = await UsuariosSequelize.findAll({
+      attributes: ["idUsuario", "nombre", "apellido", "email", "telefono"],
+      include: [
+        {
+          model: EstadoSequelize,
+          as: "estadofk",
+          attributes: ["nombreEstado"],
+        },
+        {
+          model: RolSequelize,
+          as: "rolfk",
+          attributes: ["idRol", "nombreRol"],
+        },
+      ],
+      raw: true,
+      nest: true,
+      where: {
+        estados_fk: estadoInactivo ? 3 : 1,
+      },
+    });
+    console.log(usuarios);
+    return usuarios;
   } catch (err) {
     throw err;
-    console.error(err);
   }
 }

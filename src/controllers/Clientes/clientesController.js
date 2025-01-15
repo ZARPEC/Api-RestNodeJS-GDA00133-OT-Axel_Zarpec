@@ -100,15 +100,11 @@ export async function mostrarClientes(req, res) {
   try {
     var estado = req.query.estado;
 
-    if(typeof(estado)==="undefined"){
-      estado=false;
-      const result = await mostrarClientesModel(estado);
-      return res.status(200).json(result);
-    }else if(estado=="Inactivos"){
-      estado=true;
-      const result = await mostrarClientesModel(estado);
-      return res.status(200).json(result);
-    }
+    estado =
+      typeof estado === "undefined" ? false: estado === "Inactivos"? true: false;
+
+    const result = await mostrarClientesModel(estado);
+    return res.status(200).json(result);
   } catch (err) {
     console.log(err);
   }
