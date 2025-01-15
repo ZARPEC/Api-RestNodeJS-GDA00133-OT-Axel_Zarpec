@@ -1,5 +1,6 @@
 import sql from "mssql";
-import dbConfig from "../config/dbConfig.mjs";
+import sequelize from "../config/dbConfig.mjs";
+import rolesSequelize from "./sequelize/rol.js";
 
 export async function AgregarRolModel(rol){
     try{
@@ -19,16 +20,11 @@ export async function AgregarRolModel(rol){
 
 export async function mostrarRolesModel(){
     try{
-        await sql.connect(dbConfig);
-        const result = await sql.query`
-        SELECT * FROM rol`;
-        return result.recordset;
+        await sequelize.authenticate();
+        const roles = await rolesSequelize.findAll();
+        return roles;
     }catch(err){
         throw err;
-        console.error(err);
-    }
-    finally{
-        sql.close();
     }
 }
 

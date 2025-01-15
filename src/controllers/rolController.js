@@ -1,5 +1,6 @@
 import {AgregarRolModel,mostrarRolesModel,modificarRolModel} from '../models/rolModel.js';
 
+
 export async function agregarRol(req,res){
     const rol = req.body.nombre_rol;
     try {
@@ -16,6 +17,7 @@ export async function mostrarRoles(req,res){
         res.status(200).json(result);
     } catch (error) {
         res.status(500).json({message:"Error al mostrar los roles"});
+        console.log(error);
     }
 }
 
