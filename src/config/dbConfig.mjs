@@ -1,4 +1,4 @@
-import { Sequelize } from "sequelize";
+import { Sequelize, Op } from "sequelize";
 
 
 const dbConfig ={
@@ -20,7 +20,7 @@ const sequelize = new Sequelize(
   host: dbConfig.host,
   port : dbConfig.port,
   dialect: dbConfig.dialect,
-  logging: false,
+  logging: true,
   }
 );
 
