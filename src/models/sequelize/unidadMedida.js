@@ -9,7 +9,7 @@ UnidadMedida.init({
         primaryKey: true,
         autoIncrement: true
     },
-    unidad_medida: {
+    unidad: {
         type: DataTypes.STRING
     }
 },{

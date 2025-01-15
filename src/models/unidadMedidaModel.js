@@ -1,13 +1,16 @@
 import sql from "mssql";
-import dbConfig from "../config/dbConfig.mjs";
+import sequelize from "../config/dbConfig.mjs";
+import unidadMedidaSequelize from "./sequelize/unidadMedida.js";
 
 export async function MostrarUnidadMedidaModel() {
     try {
-        await sql.connect(dbConfig);
-        const result = await sql.query`SELECT * FROM unidad_medida`;
-        return result.recordset;
+        await sequelize.authenticate();
+        const unidadMedida = await unidadMedidaSequelize.findAll({
+            attributes: ["idUnidad", "unidad"],
+        })
+        return unidadMedida;
+
     } catch (err) {
         throw err;
-        console.error(err);
     }
 }
