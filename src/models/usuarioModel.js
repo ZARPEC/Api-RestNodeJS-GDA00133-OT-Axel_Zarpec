@@ -40,7 +40,6 @@ export async function LoginModel(usuario) {
     return result;
   } catch (err) {
     throw err;
-    console.error(err);
   }
 }
 
@@ -74,7 +73,6 @@ export async function agregarUsuarioModel(
         },
       }
     )
-    console.log(result[0][0].idUsuario);
     return result[0][0].idUsuario;
   } catch (err) {
     throw err;
