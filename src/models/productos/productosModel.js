@@ -19,22 +19,28 @@ export async function agregarProducto(
   estado
 ) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("nombre_producto", nombreP)
-      .input("cantidad_medida", medidaCant)
-      .input("unidad_medida_fk", unidadMedida)
-      .input("subcategoria_fk", subcategoria)
-      .input("precio", precio)
-      .input("stock", stock)
-      .input("ruta_img", rutaimg)
-      .input("fecha_ingresoP", fechaIn)
-      .input("estado_fk", estado)
-      .execute("spInsertar_producto");
-    return result.recordset;
+    await sequelize.authenticate();
+
+    const result = await sequelize.query(
+      `EXEC spInsertar_producto :nombre_producto, :cantidad_medida, :unidad_medida_fk, :subcategoria_fk, :precio, :stock, :ruta_img, :fecha_ingresoP, :estado_fk`,
+      {
+        replacements: {
+          nombre_producto: nombreP,
+          cantidad_medida: medidaCant,
+          unidad_medida_fk: unidadMedida,
+          subcategoria_fk: subcategoria,
+          precio: precio,
+          stock: stock,
+          ruta_img: rutaimg,
+          fecha_ingresoP: fechaIn,
+          estado_fk: 1,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+    return result[0][0].idProducto;
   } catch (err) {
     throw err;
-    console.error(err);
   }
 }
 
@@ -76,6 +82,8 @@ export async function mostrarProductos(categoria, subcategoria) {
             model: EstadosProducto,
             as: "estadofk",
             attributes: [["nombreEstado", "estadofk"]],
+            where: { nombreEstado: "Activo" },
+            required: true,
           },
         ],
         raw: true, // Devuelve los resultados en formato plano
@@ -83,9 +91,7 @@ export async function mostrarProductos(categoria, subcategoria) {
         order: [["nombre_producto", "ASC"]],
       });
 
-      const productosordenados = productosPlanos(productos);
-
-      return productosordenados;
+      return productosPlanos(productos);
     } else if (subcategoria == null) {
       //entra a categoria
 
@@ -118,13 +124,14 @@ export async function mostrarProductos(categoria, subcategoria) {
             model: UnidadMedidaProducto,
             as: "unidadmedida",
             attributes: [["unidad", "unidadMedida"]],
-            required: false, // Opcional, puede estar ausente
+            required: false,
           },
           {
             model: EstadosProducto,
             as: "estadofk",
             attributes: [["nombreEstado", "estado"]],
-            required: false, // Opcional, puede estar ausente
+            where: { nombreEstado: "Activo" },
+            required: true,
           },
         ],
         raw: true,
@@ -132,9 +139,7 @@ export async function mostrarProductos(categoria, subcategoria) {
         order: [["nombre_producto", "ASC"]],
       });
 
-      const productosordenados = productosPlanos(productos);
-
-      return productosordenados;
+      return productosPlanos(productos);
     } else {
       // entro a categoria y subcategoria
 
@@ -174,7 +179,8 @@ export async function mostrarProductos(categoria, subcategoria) {
             model: EstadosProducto,
             as: "estadofk",
             attributes: [["nombreEstado", "estado"]],
-            required: false,
+            where: { nombreEstado: "Activo" },
+            required: true,
           },
         ],
         raw: true,
@@ -182,9 +188,7 @@ export async function mostrarProductos(categoria, subcategoria) {
         order: [["nombre_producto", "ASC"]],
       });
 
-      const productosordenados = productosPlanos(productos);
-
-      return productosordenados;
+      return productosPlanos(productos);
     }
   } catch (err) {
     throw err;
@@ -207,20 +211,18 @@ export async function modificarProductoModel(
       `EXEC spModificarProducto :id, :Nnombre, :NcantidadMedida, :NunidadMedida, :Nsubcategoria, :Nprecio, :Nstock, :NrutaImg`,
       {
         replacements: {
-          id,
-          Nnombre,
-          NcantidadMedida,
-          NunidadMedida,
-          Nsubcategoria,
-          Nprecio,
-          Nstock,
-          NrutaImg,
+          id: id || null,
+          Nnombre: Nnombre || null,
+          NcantidadMedida: NcantidadMedida || null,
+          NunidadMedida: NunidadMedida || null,
+          Nsubcategoria: Nsubcategoria || null,
+          Nprecio: Nprecio || null,
+          Nstock: Nstock || null,
+          NrutaImg: NrutaImg || null,
         },
         type: sequelize.QueryTypes.RAW,
       }
     );
-
-    // Devuelve los resultados del procedimiento almacenado (si los hay)
     return result;
   } catch (err) {
     console.error(err);
@@ -230,46 +232,71 @@ export async function modificarProductoModel(
 
 export async function modificarEstadoProductoModel(id, nuevoEstado) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("id", id)
-      .input("nuevo", nuevoEstado)
-      .execute("spModificar_Estado_Producto");
-    return result.recordset;
+    await sequelize.authenticate();
+
+    const result = await sequelize.query(
+      `EXEC spModificar_Estado_Producto :id, :nuevo`,
+      {
+        replacements: {
+          id: id,
+          nuevo: nuevoEstado,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
   }
 }
 export async function mostrarProductosInactivosModel() {
   try {
-    await sql.connect(dbConfig);
-    const result = await sql.query`
-        SELECT 
-            p.idProducto,
-            p.nombre_producto,
-            u.unidad,
-            p.cantidad_medida,
-            c.nombre_categoria,
-            s.subcategoria,
-            p.precio,
-            p.stock,
-            p.ruta_img,
-            e.nombreEstado
-        FROM 
-            Producto p
-        JOIN 
-            Subcategoria s ON p.subcategoria_prod = s.idSubcategoria
-        JOIN 
-            unidad_medida u ON p.unidad_medida_fk = u.idUnidad
-        join Categoria_producto c ON s.categoria_fk = c.idCategoria
-        JOIN estados e ON e.idEstados=p.estado
-        WHERE p.estado = 3
-        ORDER BY p.nombre_producto ASC `;
-    return result.recordset;
+    await sequelize.authenticate();
+
+    const productos = await Productos.findAll({
+      attributes: [
+        "idProducto",
+        "nombre_producto",
+        "cantidad_medida",
+        "precio",
+        "stock",
+        "ruta_img",
+      ],
+      include: [
+        {
+          model: SubcategoriaProducto,
+          as: "subcategoria",
+          attributes: [["subcategoria", "nombreSubcategoria"]],
+          required: true,
+          include: [
+            {
+              model: CategoriaProducto,
+              as: "categoria",
+              attributes: [["nombre_categoria", "nombreCategoria"]],
+            },
+          ],
+        },
+        {
+          model: UnidadMedidaProducto,
+          as: "unidadmedida",
+          attributes: [["unidad", "unidadMedida"]],
+        },
+        {
+          model: EstadosProducto,
+          as: "estadofk",
+          attributes: [["nombreEstado", "estadofk"]],
+          where: { nombreEstado: "Inactivo" },
+          required: true,
+        },
+      ],
+      raw: true, // Devuelve los resultados en formato plano
+      nest: true, // Organiza los alias de manera jerárquica para evitar colisiones
+      order: [["nombre_producto", "ASC"]],
+    });
+
+    return productosPlanos(productos);
   } catch (err) {
     throw err;
-    console.error(err);
   }
 }
 
@@ -287,7 +314,7 @@ function productosPlanos(productos) {
       nombreCategoria:
         producto.subcategoria?.categoria?.nombreCategoria || null,
       unidadMedida: producto.unidadmedida?.unidadMedida || null,
-      estado: producto.estadofk?.estado || null,
+      estado: producto.estadofk?.estadofk || null,
     };
   });
   return productos;
