@@ -3,7 +3,6 @@ import {
   mostrarOrdenesModel,
   modificarOrdenModel,
   actualizarEstadoModel,
-  mostrarOrdenesPendientesModel,
 } from "../models/ordenesModel.js";
 
 export async function agregarOrden(req, res) {
@@ -53,10 +52,13 @@ export async function agregarOrden(req, res) {
 export async function mostrarOrdenes(req, res) {
   try {
     var idClienteGet = req.query.idCliente;
+    var estadoGet = req.query.estado;
+
     console.log(idClienteGet);
     if (typeof idClienteGet == "undefined") {
       idClienteGet = null;
-      const result = await mostrarOrdenesModel(idClienteGet);
+
+      const result = await mostrarOrdenesModel(idClienteGet,estadoGet);
       console.log("en cliente null de controlador")
       res.status(200).json(result);
     } else {
@@ -99,14 +101,4 @@ export async function actualizarEstado(req, res) {
     res.status(500).send("Error al modificar la orden");
   }
 
-}
-
-export async function mostrarOrdenesPendientes(req, res) {
-  try {
-    const result = await mostrarOrdenesPendientesModel();
-    res.status(200).json(result);
-  } catch (err) {
-    console.log(err);
-    res.status(500).send("Error al mostrar las ordenes pendientes");
-  }
 }

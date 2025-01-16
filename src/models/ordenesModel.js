@@ -1,5 +1,11 @@
 import sql from "mssql";
-import dbConfig from "../config/dbConfig.mjs";
+import Ordensequelize from "./sequelize/orden.js";
+import sequelize from "../config/dbConfig.mjs";
+import usuarioSequelize from "./sequelize/usuarios.js";
+import clienteSequelize from "./sequelize/Cliente.js";
+import estadoSequelize from "./sequelize/estados.js";
+import productosSequelize from "./sequelize/productos.js";
+import detallesOrden from "./sequelize/detallesOrden.js";
 
 export async function AgregarOrdenModel(
   usuario,
@@ -9,182 +15,215 @@ export async function AgregarOrdenModel(
   detalles
 ) {
   try {
-    await sql.connect(dbConfig);
-    const productos = new sql.Table();
-    productos.columns.add("producto_orden", sql.Int);
-    productos.columns.add("cantidad", sql.Float);
+    const detallesOrden = JSON.stringify(detalles); 
 
-    detalles.forEach((detalle) => {
-      productos.rows.add(detalle.producto_orden, detalle.cantidad);
-    });
+    const result = await sequelize.query(
+      `EXEC spInsertar_orden_con_detalles 
+    @usuario_fk = :usuario_fk, 
+    @estado_fk = :estado_fk, 
+    @fecha_orden = :fecha_orden, 
+    @direccion = :direccion, 
+    @detalles_orden = :detalles_orden`,
+      {
+        replacements: {
+          usuario_fk: usuario,
+          estado_fk: estado,
+          fecha_orden: fecha,
+          direccion: direccion,
+          detalles_orden: detallesOrden, 
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
 
-    console.log(detalles);
-
-    const result = await new sql.Request()
-      .input("usuario_fk", usuario)
-      .input("estado_fk", estado)
-      .input("fecha_orden", fecha)
-      .input("direccion", direccion)
-      .input("detalles_orden", productos)
-      .execute("spInsertar_orden_con_detalles");
-    return result.recordset;
-  } catch (err) {
-    throw err;
-    console.error(err);
-  } finally {
-    sql.close();
+    return result; 
+  } catch (error) {
+    console.error("Error al ejecutar el procedimiento almacenado:", error);
+    throw error;
   }
 }
 
-export async function mostrarOrdenesModel(idCliente) {
+export async function mostrarOrdenesModel(idCliente, estado) {
   try {
-    await sql.connect(dbConfig);
+    await sequelize.authenticate();
     if (idCliente == null) {
-      const result = await sql.query`
-      SELECT 
-    idorden, 
-    u.nombre, 
-    u.apellido, 
-    u.email, 
-    c.nombre_Comercial, 
-    o.direccion, 
-    STRING_AGG(
-        CONCAT(p.nombre_producto, ' (', p.cantidad_medida, ': ', dt.cantidad, ' x ', p.precio, ')'), 
-        ', ' 
-    ) AS productos, 
-    SUM(p.precio * dt.cantidad) AS total, 
-    o.fecha_orden, 
-    e.nombreEstado
-FROM 
-    DETALLES_ORDEN dt
-INNER JOIN 
-    orden o ON o.idorden = dt.orden
-INNER JOIN 
-    usuarios u ON o.usuario_fk = u.idUsuario
-INNER JOIN 
-    Clientes c ON c.idCliente = u.cliente_fk
-INNER JOIN 
-    producto p ON dt.producto_orden = p.idproducto
-INNER JOIN 
-    estados e ON o.estado_fk = e.idEstados
-    where e.nombreEstado='entregado'
-GROUP BY 
-    idorden, u.nombre, u.apellido, u.email, c.nombre_Comercial, o.direccion, o.fecha_orden, e.nombreEstado;
-`;
-      return result.recordset;
+      const ordenes = await detallesOrden.findAll({
+        attributes: ["iddetalle", "orden", "producto_orden", "cantidad"],
+        include: [
+          {
+            model: Ordensequelize,
+            as: "ordenfk",
+            attributes: [
+              ["idorden", "idorden"],
+              ["fecha_orden", "fecha_orden"],
+              "direccion",
+            ],
+            required: true,
+            include: [
+              {
+                model: estadoSequelize,
+                as: "estados",
+                attributes: [["nombreEstado", "estados"]],
+                where: { nombreEstado: estado },
+                required: true,
+              },
+              {
+                model: usuarioSequelize,
+                as: "usuario",
+                attributes: [["email", "correo"], "nombre", "apellido"],
+                required: true,
+                include: [
+                  {
+                    model: clienteSequelize,
+                    as: "clientefk",
+                    attributes: ["nombre_comercial"],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: productosSequelize,
+            as: "productofk",
+            attributes: [
+              ["nombre_producto", "producto"],
+              ["cantidad_medida", "cantidad_medida"],
+              ["precio", "precio"],
+            ],
+          },
+        ],
+
+        raw: true,
+      });
+
+      return procesado(ordenes);
     } else {
-      const result = await sql.query`
-      SELECT 
-    idorden, 
-    u.nombre, 
-    u.apellido, 
-    u.email, 
-    c.nombre_Comercial, 
-    o.direccion, 
-    STRING_AGG(
-        CONCAT(p.nombre_producto, ' (', p.cantidad_medida, ': ', dt.cantidad, ' x ', p.precio, ')'), 
-        ', ' 
-    ) AS productos, 
-    SUM(p.precio * dt.cantidad) AS total, 
-    o.fecha_orden, 
-    e.nombreEstado
-FROM 
-    DETALLES_ORDEN dt
-INNER JOIN 
-    orden o ON o.idorden = dt.orden
-INNER JOIN 
-    usuarios u ON o.usuario_fk = u.idUsuario
-INNER JOIN 
-    Clientes c ON c.idCliente = u.cliente_fk
-INNER JOIN 
-    producto p ON dt.producto_orden = p.idproducto
-INNER JOIN 
-    estados e ON o.estado_fk = e.idEstados
-    where c.idCliente = ${idCliente}
-GROUP BY 
-    idorden, u.nombre, u.apellido, u.email, c.nombre_Comercial, o.direccion, o.fecha_orden, e.nombreEstado;`;
-      return result.recordset;
+      idCliente = parseInt(idCliente);
+      const ordenes = await detallesOrden.findAll({
+        attributes: ["iddetalle", "orden", "producto_orden", "cantidad"],
+        include: [
+          {
+            model: Ordensequelize,
+            as: "ordenfk",
+            attributes: [
+              ["idorden", "idorden"],
+              ["fecha_orden", "fecha_orden"],
+              "direccion",
+            ],required: true,
+            include: [
+              {
+                model: estadoSequelize,
+                as: "estados",
+                attributes: [["nombreEstado", "estados"]],
+                required: true,
+              },
+              {
+                model: usuarioSequelize,
+                as: "usuario",
+                attributes: [["email", "correo"], "nombre", "apellido"],
+                where: { idUsuario:idCliente},
+                required: true,
+                include: [
+                  {
+                    model: clienteSequelize,
+                    as: "clientefk",
+                    attributes: ["nombre_comercial", "idCliente"],
+            
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: productosSequelize,
+            as: "productofk",
+            attributes: [
+              ["nombre_producto", "producto"],
+              ["cantidad_medida", "cantidad_medida"],
+              ["precio", "precio"],
+            ],
+          },
+        ],
+
+        raw: true,
+      });
+
+      return procesado(ordenes);
     }
   } catch (err) {
+    console.error("Error al obtener las órdenes:", err);
     throw err;
-    console.error(err);
-  } finally {
-    sql.close();
-  }
-}
-
-export async function mostrarOrdenesPendientesModel() {
-  try {
-    await sql.connect(dbConfig);
-    const result = await sql.query`
-    SELECT 
-    idorden, 
-    u.nombre, 
-    u.apellido, 
-    u.email, 
-    c.nombre_Comercial, 
-    o.direccion, 
-    STRING_AGG(
-        CONCAT(p.nombre_producto, ' (', p.cantidad_medida, ': ', dt.cantidad, ' x ', p.precio, ')'), 
-        ', ' 
-    ) AS productos, 
-    SUM(p.precio * dt.cantidad) AS total, 
-    o.fecha_orden, 
-    e.nombreEstado
-FROM 
-    DETALLES_ORDEN dt
-INNER JOIN 
-    orden o ON o.idorden = dt.orden
-INNER JOIN 
-    usuarios u ON o.usuario_fk = u.idUsuario
-INNER JOIN 
-    Clientes c ON c.idCliente = u.cliente_fk
-INNER JOIN 
-    producto p ON dt.producto_orden = p.idproducto
-INNER JOIN 
-    estados e ON o.estado_fk = e.idEstados
-    where e.nombreEstado='pendiente'
-GROUP BY 
-    idorden, u.nombre, u.apellido, u.email, c.nombre_Comercial, o.direccion, o.fecha_orden, e.nombreEstado;
-`;
-    return result.recordset;
-  } catch (err) {
-    throw err;
-    console.error(err);
-  } finally {
-    sql.close();
   }
 }
 
 export async function modificarOrdenModel(id, usuario_fk, direccion) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("id", id)
-      .input("usuario_fk", usuario_fk)
-      .input("direccion", direccion)
-      .execute("spModificarOrden");
-    return result.recordset;
+    const result = await sequelize.query(
+      `EXEC spModificarOrden :id, :usuario_fk, :direccion`,
+      {
+        replacements: {
+          id: id,
+          usuario_fk: usuario_fk || null,
+          direccion: direccion || null,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
-  } finally {
-    sql.close();
   }
 }
 
 export async function actualizarEstadoModel(id, estado) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("id", id)
-      .input("nuevo", estado)
-      .execute("spModificar_estado_orden");
-    return result.recordset;
+    const result = await sequelize.query(
+      `EXEC spModificar_estado_orden :id, :nuevo`,
+      {
+        replacements: {
+          id: id,
+          nuevo: estado,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
-  } finally {
-    sql.close();
   }
+}
+
+export async function rechazarOrdenModel(id) {
+  try {
+    const result = await sequelize.query(
+      `EXEC spModificar_estado_orden :id, :nuevo`,
+      {
+        replacements: {
+          id: id,
+          nuevo: estado,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+  } catch (err) {
+    throw err;
+  }
+}
+
+function procesado(ordenes) {
+  return ordenes.map((orden) => ({
+    idorden: orden["ordenfk.idorden"],
+    iddetalle: orden.iddetalle,
+    nombre: orden["ordenfk.usuario.nombre"],
+    apellido: orden["ordenfk.usuario.apellido"],
+    producto: orden["productofk.producto"],
+    cantidad: orden.cantidad,
+    precio: orden["productofk.precio"],
+    total: orden.cantidad * orden["productofk.precio"],
+    nombreEstado: orden["ordenfk.estados.estados"],
+    fecha_orden: orden["ordenfk.fecha_orden"],
+    nombre_comercial: orden["ordenfk.usuario.clientefk.nombre_comercial"],
+    direccion: orden["ordenfk.direccion"],
+  }));
 }
