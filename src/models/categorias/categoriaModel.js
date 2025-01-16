@@ -8,14 +8,13 @@ const { Op } = Sequelize;
 //categorias
 export async function agregarCategoria(nombreCategoria) {
   try {
-    await sql.connect(dbConfig); //Se conecta a la base de datos
+    await sql.connect(dbConfig);
     const result = await new sql.Request()
       .input("Categoria", nombreCategoria)
-      .execute("spInsertar_Categoria"); //Se inserta la categoria en la base de datos
-    return result.recordset; //Se retorna el resultado
+      .execute("spInsertar_Categoria"); 
+    return result.recordset; 
   } catch (err) {
-    throw err; //en caso de error se lanza una excepcion mostrando el error
-    console.log(err);
+    throw err; 
   } finally {
     sql.close();
   }
@@ -68,19 +67,19 @@ export async function agregarSubCategoria(
 }
 
 export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {
-  // muestra las subcategorias asi como subcategorias hijas
+  
   try {
     await sequelize.authenticate();
     if (subcategoriaGet == null) {
       //muestra las subcategorias
       const subcategorias = await subcategoriaSequelize.findAll({
-        attributes: ["idSubcategoria", "subcategoria"], // Selecciona las columnas de Subcategoria
+        attributes: ["idSubcategoria", "subcategoria"], 
         include: [
           {
             model: categoriaSequelize,
             as: "categoria",
-            attributes: ["nombre_categoria"], // Selecciona las columnas de CategoriaProducto
-            where: { nombre_categoria: categoriaGet }, // Filtra por nombre de categoría
+            attributes: ["nombre_categoria"], 
+            where: { nombre_categoria: categoriaGet }, 
           },
         ],
         raw: true,
@@ -92,15 +91,13 @@ export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {
 
       return subcategorias;
     } else {
-      //muestra las subcategorias hijas
-      console.log("entro a subcategoria no null");
       const subcategorias = await sequelize.models.Subcategoria.findAll({
-        attributes: ["idSubcategoria", "subcategoria"], // Selecciona las columnas necesarias
+        attributes: ["idSubcategoria", "subcategoria"], 
         include: [
           {
             model: categoriaSequelize,
             as: "categoria",
-            attributes: ["nombre_categoria"], // Selecciona las columnas de CategoriaProducto
+            attributes: ["nombre_categoria"], 
           },
         ],
         where: sequelize.where(sequelize.col("subcategoria_padre"), {
@@ -115,7 +112,7 @@ export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {
     }
   } catch (err) {
     throw err;
-    console.error(err);
+
   }
 }
 
