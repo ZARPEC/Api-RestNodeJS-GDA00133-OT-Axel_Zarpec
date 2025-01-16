@@ -1,49 +1,50 @@
 import sql from "mssql";
 import dbConfig from "../config/dbConfig.mjs";
+import sequelize from "../config/dbConfig.mjs";
+import estadosSequelize from "./sequelize/estados.js";
 
 export async function agregarEstadoModel(NombreEstado) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("estado", NombreEstado)
-      .execute("spInsertar_estado");
-    return result.recordset;
+    const result = await sequelize.query(`EXEC spInsertar_estado :estado`, {
+      replacements: {
+        estado: NombreEstado,
+      },
+      type: sequelize.QueryTypes.RAW,
+    });
+
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
-  } finally {
-    sql.close();
   }
 }
 
 export async function mostrarEstadosModel() {
   try {
-    await sql.connect(dbConfig);
-    const result = await sql.query`
-        SELECT * FROM estados`;
-    return result.recordset;
+    sequelize.authenticate();
+    const result = await estadosSequelize.findAll({
+      attributes: ["idEstados", "nombreEstado"],
+    });
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
-  } finally {
-    sql.close();
   }
 }
 
 export async function modificarEstadoModel(idEstado, estadoNuevo) {
   try {
-    await sql.connect(dbConfig);
-    console.log(idEstado, estadoNuevo);
-    const result = await new sql.Request().
-      input("id", idEstado).
-      input("nuevo", estadoNuevo).
-      execute("spModificar_estado");
-      console.log(result);
-    return result.recordset;
+    const result = await sequelize.query(
+      `EXEC spModificar_estado :id, :nuevo`,
+      {
+        replacements: {
+          id: idEstado,
+          nuevo: estadoNuevo,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+    console.log(result);
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
-  } finally {
-    sql.close();
   }
 }
