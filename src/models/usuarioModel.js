@@ -6,7 +6,6 @@ import EstadoSequelize from "./sequelize/estados.js";
 
 export async function LoginModel(usuario) {
   try {
-    console.log(usuario);
     await sequelize.authenticate();
     const result = await usuarioSequelize.findOne({
       attributes: [
@@ -55,8 +54,6 @@ export async function agregarUsuarioModel(
   fechaIngreso
 ) {
   try {
-
-
     const result = await sequelize.query(
       `EXEC spInsertar_usuario :rol, :estado, :email, :nombre, :apellido, :password, :telefono, :nacimiento, :fechaCreacion`,
       {
@@ -72,7 +69,7 @@ export async function agregarUsuarioModel(
           fechaCreacion: fechaIngreso,
         },
       }
-    )
+    );
     return result[0][0].idUsuario;
   } catch (err) {
     throw err;
@@ -95,15 +92,15 @@ export async function modificarUsuarioModel(
       `EXEC spModificarUsuario :id, :nuevoRol, :NuevoEstado, :nuevoEmail, :NuevoNombre, :nuevapass,  :NuevoApellido, :nuevoTelefono, :nuevoFechaNacimiento`,
       {
         replacements: {
-          id: idUsuario||null,
-          nuevoRol: rol||null,
-          NuevoEstado: estado||null,
-          nuevoEmail: email||null,
-          NuevoNombre: nombre||null,
-          nuevapass: password||null,
-          NuevoApellido: apellido||null,
-          nuevoTelefono: telefono||null,
-          nuevoFechaNacimiento: nacimiento||null,
+          id: idUsuario || null,
+          nuevoRol: rol || null,
+          NuevoEstado: estado || null,
+          nuevoEmail: email || null,
+          NuevoNombre: nombre || null,
+          nuevapass: password || null,
+          NuevoApellido: apellido || null,
+          nuevoTelefono: telefono || null,
+          nuevoFechaNacimiento: nacimiento || null,
         },
       }
     );
