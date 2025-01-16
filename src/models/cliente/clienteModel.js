@@ -127,7 +127,6 @@ export async function mostrarClientesModel(estadoInactivo) {
         estados_fk: estadoInactivo ? 3 : 1,
       },
     });
-    console.log(usuarios);
     return usuarios;
   } catch (err) {
     throw err;
