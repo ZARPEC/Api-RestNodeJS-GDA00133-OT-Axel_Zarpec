@@ -4,7 +4,6 @@ import rolesSequelize from "./sequelize/rol.js";
 
 export async function AgregarRolModel(rol) {
   try {
-    await sql.connect(dbConfig);
     const result = await sequelize.query(`EXEC spInsertar_rol :rol`, {
       replacements: {
         rol: rol,
@@ -29,7 +28,6 @@ export async function mostrarRolesModel() {
 
 export async function modificarRolModel(idrol, rolNuevo) {
   try {
-    await sql.connect(dbConfig);
     const result = await sequelize.query(`EXEC spModificar_rol :id, :nuevo`, {
       replacements: {
         id: idrol,
