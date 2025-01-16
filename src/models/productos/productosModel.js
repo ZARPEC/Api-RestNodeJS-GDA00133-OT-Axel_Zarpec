@@ -6,6 +6,8 @@ import Productos from "../sequelize/productos.js";
 import UnidadMedidaProducto from "../sequelize/unidadMedida.js";
 import CategoriaProducto from "../sequelize/categoria.js";
 import EstadosProducto from "../sequelize/estados.js";
+import Sequelize from "sequelize";
+const { Op } = Sequelize;
 
 export async function agregarProducto(
   nombreP,
@@ -86,14 +88,15 @@ export async function mostrarProductos(categoria, subcategoria) {
             required: true,
           },
         ],
-        raw: true, // Devuelve los resultados en formato plano
-        nest: true, // Organiza los alias de manera jerárquica para evitar colisiones
+        raw: true,
+        nest: true,
+        
         order: [["nombre_producto", "ASC"]],
       });
 
       return productosPlanos(productos);
     } else if (subcategoria == null) {
-      //entra a categoria
+
 
       const productos = await Productos.findAll({
         attributes: [
@@ -136,12 +139,17 @@ export async function mostrarProductos(categoria, subcategoria) {
         ],
         raw: true,
         nest: true,
+        where: {
+          stock: {
+            [Op.gt]: 0,
+          },
+        },
         order: [["nombre_producto", "ASC"]],
       });
 
       return productosPlanos(productos);
     } else {
-      // entro a categoria y subcategoria
+      
 
       const productos = await Productos.findAll({
         attributes: [
@@ -185,6 +193,11 @@ export async function mostrarProductos(categoria, subcategoria) {
         ],
         raw: true,
         nest: true,
+        where: {
+          stock: {
+            [Op.gt]: 0,
+          },
+        },
         order: [["nombre_producto", "ASC"]],
       });
 
@@ -206,7 +219,6 @@ export async function modificarProductoModel(
   NrutaImg
 ) {
   try {
-    // Llama al procedimiento almacenado usando una consulta sin procesar
     const result = await sequelize.query(
       `EXEC spModificarProducto :id, :Nnombre, :NcantidadMedida, :NunidadMedida, :Nsubcategoria, :Nprecio, :Nstock, :NrutaImg`,
       {
@@ -289,8 +301,13 @@ export async function mostrarProductosInactivosModel() {
           required: true,
         },
       ],
-      raw: true, // Devuelve los resultados en formato plano
-      nest: true, // Organiza los alias de manera jerárquica para evitar colisiones
+      raw: true,
+      nest: true,
+      where: {
+        stock: {
+          [Op.gt]: 0,
+        },
+      },
       order: [["nombre_producto", "ASC"]],
     });
 
@@ -317,5 +334,4 @@ function productosPlanos(productos) {
       estado: producto.estadofk?.estadofk || null,
     };
   });
-  return productos;
 }
