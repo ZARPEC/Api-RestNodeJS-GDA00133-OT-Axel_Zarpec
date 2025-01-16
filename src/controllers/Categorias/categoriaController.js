@@ -2,12 +2,12 @@ import {agregarCategoria,mostrarCategoriasModel, agregarSubCategoria,mostrarSubC
 //categorias
 export async function AgregarCategoria(req, res) {
   try {
-    const nombreCat= req.body.nombre; //Se captura el nombre de la categoria desde la peticion post del cliente
-    const result = await agregarCategoria(nombreCat);//Se llama a la funcion agregarCategoria del modelo
-    res.status(200).json(result);//Se envia la respuesta al cliente
+    const nombreCat= req.body.nombre; 
+    const result = await agregarCategoria(nombreCat);
+    res.status(200).json(result);
   } catch (err) {
-    console.log(err); //En caso de error se muestra el error
-    res.status(500).send("Error al agregar la categoria"); //Se envia un mensaje de error al cliente
+    console.log(err); 
+    res.status(500).send("Error al agregar la categoria"); 
   }
 }
 
