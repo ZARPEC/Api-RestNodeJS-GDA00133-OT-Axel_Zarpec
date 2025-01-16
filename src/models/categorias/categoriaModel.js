@@ -8,13 +8,18 @@ const { Op } = Sequelize;
 //categorias
 export async function agregarCategoria(nombreCategoria) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("Categoria", nombreCategoria)
-      .execute("spInsertar_Categoria"); 
-    return result.recordset; 
+    const result = await sequelize.query(
+      `EXEC spInsertar_Categoria :Categoria`,
+      {
+        replacements: {
+          Categoria: nombreCategoria,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+    return result;
   } catch (err) {
-    throw err; 
+    throw err;
   } finally {
     sql.close();
   }
@@ -34,15 +39,20 @@ export async function mostrarCategoriasModel() {
 
 export async function modificarCategoriaModel(idCategoria, nombreCategoria) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("id", idCategoria)
-      .input("nuevo", nombreCategoria)
-      .execute("spModificar_Categoria");
-    return result.recordset;
+    const result = await sequelize.query(
+      `EXEC spModificar_Categoria :id, :nuevo`,
+      {
+        replacements: {
+          id: idCategoria,
+          nuevo: nombreCategoria,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
   }
 }
 
@@ -53,33 +63,36 @@ export async function agregarSubCategoria(
   categoria_fk
 ) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("subcategoria", nombreSubCategoria)
-      .input("subcategoria_padre", subcategoria_padre)
-      .input("categoria_fk", categoria_fk)
-      .execute("spInsertar_subcategoria");
+    const result = await sequelize.query(
+      `EXEC spInsertar_subcategoria :subcategoria, :subcategoria_padre, :categoria_fk`,
+      {
+        replacements: {
+          subcategoria: nombreSubCategoria,
+          subcategoria_padre: subcategoria_padre,
+          categoria_fk: categoria_fk,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
     return result.recordset;
   } catch (err) {
     throw err;
-    console.error(err);
   }
 }
 
 export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {
-  
   try {
     await sequelize.authenticate();
     if (subcategoriaGet == null) {
       //muestra las subcategorias
       const subcategorias = await subcategoriaSequelize.findAll({
-        attributes: ["idSubcategoria", "subcategoria"], 
+        attributes: ["idSubcategoria", "subcategoria"],
         include: [
           {
             model: categoriaSequelize,
             as: "categoria",
-            attributes: ["nombre_categoria"], 
-            where: { nombre_categoria: categoriaGet }, 
+            attributes: ["nombre_categoria"],
+            where: { nombre_categoria: categoriaGet },
           },
         ],
         raw: true,
@@ -92,12 +105,12 @@ export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {
       return subcategorias;
     } else {
       const subcategorias = await sequelize.models.Subcategoria.findAll({
-        attributes: ["idSubcategoria", "subcategoria"], 
+        attributes: ["idSubcategoria", "subcategoria"],
         include: [
           {
             model: categoriaSequelize,
             as: "categoria",
-            attributes: ["nombre_categoria"], 
+            attributes: ["nombre_categoria"],
           },
         ],
         where: sequelize.where(sequelize.col("subcategoria_padre"), {
@@ -112,7 +125,6 @@ export async function mostrarSubCategorias(categoriaGet, subcategoriaGet) {
     }
   } catch (err) {
     throw err;
-
   }
 }
 
@@ -123,17 +135,22 @@ export async function modificarSubCategoriaModel(
   categoria_fk
 ) {
   try {
-    await sql.connect(dbConfig);
-    const result = await new sql.Request()
-      .input("id", idSubcategoria)
-      .input("nuevoNombre", nombreSubcategoria)
-      .input("nuevosubcategoriaPadre", subcategoria_padre)
-      .input("nuevocategoriaFK", categoria_fk)
-      .execute("spModificarSubcategoria");
-    return result.recordset;
+    const result = await sequelize.query(
+      `EXEC spModificarSubcategoria :id, :nuevoNombre, :nuevosubcategoriaPadre, :nuevocategoriaFK`,
+      {
+        replacements: {
+          id: idSubcategoria,
+          nuevoNombre: nombreSubcategoria,
+          nuevosubcategoriaPadre: subcategoria_padre,
+          nuevocategoriaFK: categoria_fk,
+        },
+        type: sequelize.QueryTypes.RAW,
+      }
+    );
+
+    return result;
   } catch (err) {
     throw err;
-    console.error(err);
   }
 }
 
